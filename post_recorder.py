@@ -90,6 +90,8 @@ def record_top_posts(start_date, end_date, amount):
                                                  limit=amount)
 
     for i, post in enumerate(post_generator):
+        if post.score < 500: return
+
         post_folder = os.path.join(base_post_folder, str(i+num_existing_posts))
         os.mkdir(post_folder)
 
