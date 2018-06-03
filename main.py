@@ -15,7 +15,7 @@ def get_praw_api():
                          password=config.password,
                          client_id=config.client_id,
                          client_secret=config.client_secret,
-                         user_agent='prequelmemes-repost-bot-v0.1')
+                         user_agent=config.user_agent)
 
     return reddit
 
@@ -48,10 +48,13 @@ def load_all_posts():
 
 
 def update_posts():
-    # rewrite to not reload all 15000 posts
-    # record top posts of the day
-    # reload posts
-    pass
+    end_day = int(datetime.today().timestamp())
+    start_day = end_day - 86400
+
+    post_recorder.record_top_posts(start_day, end_day, 35)
+
+    # it may seem overkill to reload every single post but it doesn't take that long compared to check_if_repost
+    return load_all_posts()
 
 
 def reply(repost: NewPost, original):
