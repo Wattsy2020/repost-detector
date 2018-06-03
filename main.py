@@ -21,8 +21,8 @@ def get_praw_api():
 
 
 def record_posts():
-    start_month = int(datetime(2017, 2, 1).timestamp())
-    end_month = int(datetime(2017, 3, 1).timestamp())
+    start_month = int(datetime(2017, 1, 1).timestamp())
+    end_month = int(datetime(2017, 2, 1).timestamp())
 
     while end_month < datetime.today().timestamp():
         post_recorder.record_top_posts(start_month, end_month, 1000)
@@ -78,7 +78,8 @@ def check_if_repost(new_post, posts):
 
         # handle gifs
         if new_post.image_path == '' or search_post.image_path == '':
-            if new_post.image_path == search_post.image_path and new_post.title == search_post.title:
+            if new_post.image_path == search_post.image_path and new_post.title == search_post.title \
+                    and len(new_post.title) > 20:
                 reply(new_post, search_post)
                 shutil.rmtree(temp_folder)
                 return
@@ -95,12 +96,9 @@ def check_if_repost(new_post, posts):
 
     # search for posts with similar meme_words and use image comparison on the matches
     for post in posts:
-        # compare gifs
+        # ignore gifs
         if new_post.image_path == '' or post.image_path == '':
-            if new_post.image_path == post.image_path:  # if they are both gifs go by the similarity of the title
-                if compare_keywords(new_post.title_keywords, post.title_keywords) >= title_similarity_limit:
-                    reply(new_post, post)
-                    return
+            continue
 
         # compare blank images
         elif new_post.meme_words == ['a'] or new_post.meme_words == []:  # blank text is autocorrected to 'a'
