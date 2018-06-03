@@ -52,14 +52,9 @@ class NewPost:
         # resize image2 to image1's dimensions
         width, height = image1.shape[:2]
         try:
-            if width > 2000 or height > 2000:  # resize images that are too large
-                width, height = int(width/2), int(height/2)
-                image1_resize = cv2.resize(image1, (height, width), interpolation=cv2.INTER_AREA)
-            else:
-                image1_resize = image1
             image2_resize = cv2.resize(image2, (height, width), interpolation=cv2.INTER_AREA)
 
-        except Exception as exception:  # handles the case when an image can't be loaded
+        except Exception as exception:  # handles the case when an image can't be loaded, i.e. is a gif
             print('\nError while resizing image: {}'.format(exception))
             print(self.link, post.link)
             return 0
@@ -71,11 +66,14 @@ class NewPost:
             start_section = int(height*(i-1)/10)
             end_section = int(height*i/10)
 
-            im1_section = image1_resize[start_section:end_section, 0:width]
+            im1_section = image1[start_section:end_section, 0:width]
             im2_section = image2_resize[start_section:end_section, 0:width]
 
             # compare images using structural similarity index
-            similarity = ssim(im1_section, im2_section, multichannel=True)
+            try:
+                similarity = ssim(im1_section, im2_section, multichannel=True)
+            except ValueError:  # image is too large (>2500*2500), not worth considering these outliers
+                return 0
 
             # stop comparing if section is not similar
             if similarity < .70:
