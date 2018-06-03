@@ -1,21 +1,14 @@
 import re
-
-import praw
-import config
+import psaw
 import os
 import urllib
+import cv2
+
 import text_recognition
 
 
-def get_subreddit():
-    reddit = praw.Reddit(username=config.username,
-                         password=config.password,
-                         client_id=config.client_id,
-                         client_secret=config.client_secret,
-                         user_agent='prequelmemes-repost-bot-v0.1')
-
-    subreddit = reddit.subreddit('prequelmemes')
-    return subreddit
+def get_psaw_api():
+    return psaw.PushshiftAPI()
 
 
 def store_post(data, folder):
@@ -27,22 +20,33 @@ def store_post(data, folder):
 
 
 def download_image(url, folder):
+    file_name = os.path.join(folder, 'image.jpg')
+    imgur = False
+
     # handle different image urls and ignore gifs
     if '.gif' in url:
         return ''
     if 'imgur' in url:
         url = url + '.jpg'
+        imgur = True
     elif 'i.redd' not in url:
         return ''
 
-    file_name = os.path.join(folder, 'image.jpg')
+    # download the image, take into account deleted images and other downloading errors
     try:
         urllib.request.urlretrieve(url, file_name)
-    except urllib.error.HTTPError:  # handle deleted images
+    except urllib.error.HTTPError:
         return ''
     except Exception as error:
         print('\n Error occurred while downloading image: {}'.format(error))
         return ''
+
+    # Check that images downloaded from imgur are not gifs
+    if imgur:
+        image = cv2.imread(file_name)
+        if image is None:  # gifs will be opened as none
+            os.remove(file_name)
+            file_name = ''
 
     return file_name
 
@@ -69,8 +73,8 @@ def get_post_data(post, folder, get_text=True):
     return title, title_keywords, link, score, date, image_path, meme_keywords
 
 
-def record_top_posts(time_filter, amount):
-    base_post_folder = os.path.join(base_folder, time_filter)
+def record_top_posts(start_date, end_date, amount):
+    base_post_folder = os.path.join(base_folder, 'top_posts')
 
     if os.path.exists(base_post_folder):
         num_existing_posts = len(os.listdir(base_post_folder))
@@ -78,10 +82,15 @@ def record_top_posts(time_filter, amount):
         os.mkdir(base_post_folder)
         num_existing_posts = 0
 
-    for i, post in enumerate(subreddit.top(time_filter, limit=amount)):
-        if i < num_existing_posts: continue  # don't recreate existing posts
+    post_generator = psaw_api.search_submissions(after=start_date,
+                                                 before=end_date,
+                                                 subreddit='prequelmemes',
+                                                 sort_type="score",
+                                                 sort="desc",
+                                                 limit=amount)
 
-        post_folder = os.path.join(base_post_folder, str(i))
+    for i, post in enumerate(post_generator):
+        post_folder = os.path.join(base_post_folder, str(i+num_existing_posts))
         os.mkdir(post_folder)
 
         data = get_post_data(post, post_folder)
@@ -90,5 +99,5 @@ def record_top_posts(time_filter, amount):
         print("{}% complete".format(int((i+1)/amount*100)))
 
 
-subreddit = get_subreddit()
+psaw_api = get_psaw_api()
 base_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)))

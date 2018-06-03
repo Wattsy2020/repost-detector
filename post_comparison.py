@@ -51,13 +51,7 @@ class NewPost:
 
         # resize image2 to image1's dimensions
         width, height = image1.shape[:2]
-        try:
-            image2_resize = cv2.resize(image2, (height, width), interpolation=cv2.INTER_AREA)
-
-        except Exception as exception:  # handles the case when an image can't be loaded, i.e. is a gif
-            print('\nError while resizing image: {}'.format(exception))
-            print(self.link, post.link)
-            return 0
+        image2_resize = cv2.resize(image2, (height, width), interpolation=cv2.INTER_AREA)
 
         # split the image into 10ths and compare each section
         sum_similarities = 0

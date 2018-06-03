@@ -1,22 +1,39 @@
 import os
 import shutil
 import time
-
+import praw
 import prawcore
 from datetime import datetime
-from post_recorder import subreddit
 
+import config
 import post_recorder
 from post_comparison import Post, NewPost, compare_keywords
 
 
+def get_praw_api():
+    reddit = praw.Reddit(username=config.username,
+                         password=config.password,
+                         client_id=config.client_id,
+                         client_secret=config.client_secret,
+                         user_agent='prequelmemes-repost-bot-v0.1')
+
+    return reddit
+
+
 def record_posts():
-    post_recorder.record_top_posts('all', 1000)
-    post_recorder.record_top_posts('month', 1000)
+    start_month = int(datetime(2017, 2, 1).timestamp())
+    end_month = int(datetime(2017, 3, 1).timestamp())
+
+    while end_month < datetime.today().timestamp():
+        post_recorder.record_top_posts(start_month, end_month, 1000)
+
+        # this actually adds 30 days instead of 1 month but that doesn't matter much
+        start_month = end_month
+        end_month = end_month + 2592000
 
 
-def load_posts_from_folder(folder):
-    posts_folder = os.path.join(post_recorder.base_folder, folder)
+def load_all_posts():
+    posts_folder = os.path.join(post_recorder.base_folder, 'top_posts')
     posts = []
 
     for folder in os.listdir(posts_folder):
@@ -25,39 +42,16 @@ def load_posts_from_folder(folder):
         if os.path.exists(post_path):  # if its a deleted post it will have a folder but no text file
             posts.append(Post(post_path))
 
+    posts = sorted(posts, key=lambda item: -item.date)  # need negative sign to sort by most recent date
+
     return posts
 
 
-def load_all_posts():
-    # return all stored posts sorted by date
-    top_posts = load_posts_from_folder('all')
-    month_posts = load_posts_from_folder('month')
-
-    top_posts.extend(month_posts)
-    top_posts = sorted(top_posts, key=lambda item: -item.date)  # need negative sign to sort by most recent date
-
-    return top_posts
-
-
 def update_posts():
+    # rewrite to not reload all 15000 posts
     # record top posts of the day
-    post_recorder.record_top_posts('day', 35)
-
-    # move them to the month folder
-    month_folder = os.path.join(post_recorder.base_folder, 'month')
-    day_folder = os.path.join(post_recorder.base_folder, 'day')
-
-    num_posts = len(os.listdir(month_folder))
-    for i in range(35):
-        source = os.path.join(day_folder, str(i))
-        destination = os.path.join(month_folder, str(i + num_posts))
-
-        shutil.move(source, destination)
-
-    shutil.rmtree(day_folder)
-
     # reload posts
-    return load_all_posts()
+    pass
 
 
 def reply(repost: NewPost, original):
@@ -149,4 +143,6 @@ def main():
             posts = update_posts()
 
 
-main()
+subreddit = get_praw_api().subreddit('prequelmemes')
+# main()
+record_posts()

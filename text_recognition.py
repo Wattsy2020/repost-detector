@@ -1,6 +1,7 @@
 import pytesseract
 import cv2
 from PIL import Image
+import os
 import re
 import autocorrect
 
@@ -48,7 +49,7 @@ def get_words(text):
 
 
 def get_image_text(image_path):
-    if image_path == "": return
+    if image_path == '': return
     image = cv2.imread(image_path, 0)
 
     # modify the image to make tesseract more effective
@@ -56,10 +57,13 @@ def get_image_text(image_path):
     image = cv2.medianBlur(image, 3)
 
     # save and load the modified image
-    filename = "{}-ocr.png".format(image_path)
+    filename = '{}-ocr.png'.format(image_path)
     cv2.imwrite(filename, image)
     modified_image = Image.open(filename)
 
     # use tesseract to get text from image
     text = pytesseract.image_to_string(modified_image).encode('utf-8')
+
+    # remove modified image to save space
+    os.remove(filename)
     return str(text)
