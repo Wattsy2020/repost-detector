@@ -1,35 +1,27 @@
 import os
 import shutil
 import time
-import praw
 import prawcore
+from post_recorder import subreddit
 from datetime import datetime
 
-import config
 import post_recorder
 from post_comparison import Post, NewPost, compare_keywords
 
 
-def get_praw_api():
-    reddit = praw.Reddit(username=config.username,
-                         password=config.password,
-                         client_id=config.client_id,
-                         client_secret=config.client_secret,
-                         user_agent=config.user_agent)
-
-    return reddit
-
-
-def record_posts():
+def record_all_posts():
     start_month = int(datetime(2017, 1, 1).timestamp())
     end_month = int(datetime(2017, 2, 1).timestamp())
 
     while end_month < datetime.today().timestamp():
-        post_recorder.record_top_posts(start_month, end_month, 1000)
+        post_recorder.record_old_posts(start_month, end_month, 1000)
 
         # this actually adds 30 days instead of 1 month but that doesn't matter much
         start_month = end_month
         end_month = end_month + 2592000
+
+    # record the most recent posts using praw
+    post_recorder.record_new_posts('month', 1000)
 
 
 def load_all_posts():
@@ -48,10 +40,7 @@ def load_all_posts():
 
 
 def update_posts():
-    end_day = int(datetime.today().timestamp())
-    start_day = end_day - 86400
-
-    post_recorder.record_top_posts(start_day, end_day, 35)
+    post_recorder.record_new_posts('day', 35)
 
     # it may seem overkill to reload every single post but it doesn't take that long compared to check_if_repost
     return load_all_posts()
@@ -61,7 +50,7 @@ def reply(repost: NewPost, original):
     print('\n{} is a repost of {}'.format(repost.link, original.link))
 
 
-def check_if_repost(new_post, posts):
+def check_if_repost(new_post):
     # print('\nChecking: {}       Meme text: {}'.format(new_post.title, new_post.meme_words))
     title_similarity_limit = .7
     meme_text_similarity_limit = .7
@@ -83,9 +72,8 @@ def check_if_repost(new_post, posts):
                 reply(new_post, search_post)
                 shutil.rmtree(temp_folder)
                 return
-            else:
-                shutil.rmtree(temp_folder)
-                continue
+            shutil.rmtree(temp_folder)
+            continue
 
         similarity = new_post.compare_image(search_post)
         shutil.rmtree(temp_folder)
@@ -101,7 +89,7 @@ def check_if_repost(new_post, posts):
             continue
 
         # compare blank images
-        elif new_post.meme_words == ['a'] or new_post.meme_words == []:  # blank text is autocorrected to 'a'
+        elif not new_post.meme_words:
             if compare_keywords(new_post.title_keywords, post.title_keywords) >= title_similarity_limit:
                 if new_post.compare_image(post) >= image_similarity_limit:
                     reply(new_post, post)
@@ -115,8 +103,9 @@ def check_if_repost(new_post, posts):
 
 
 def main():
-    posts = load_all_posts()
     new_folder = os.path.join(post_recorder.base_folder, 'new')
+    if not os.path.exists(new_folder):
+        os.mkdir(new_folder)
 
     while True:
         process_start_time = datetime.today()
@@ -127,7 +116,7 @@ def main():
 
             # handle internet dropouts
             try:
-                check_if_repost(post, posts)
+                check_if_repost(post)
             except prawcore.exceptions.ServerError:
                 time.sleep(180)
 
@@ -144,6 +133,6 @@ def main():
             posts = update_posts()
 
 
-subreddit = get_praw_api().subreddit('prequelmemes')
-# main()
-record_posts()
+posts = load_all_posts()
+if __name__ == '__main__':
+    main()
