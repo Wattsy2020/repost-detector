@@ -22,7 +22,7 @@ def parse_ocr_text(words):
     corrected_words = []
 
     for word in words:
-        if len(word) < 15:  # ignore long words as they are likely OCR inaccuracies
+        if 15 > len(word) > 2:  # ignore long and short words as they are likely OCR inaccuracies
             word = autocorrect.spell(word)  # correct spelling errors
             corrected_words.append(word)
 
