@@ -3,8 +3,20 @@ import psaw
 import os
 import urllib
 import cv2
+import praw
 
+import config
 import text_recognition
+
+
+def get_praw_api():
+    reddit = praw.Reddit(username=config.username,
+                         password=config.password,
+                         client_id=config.client_id,
+                         client_secret=config.client_secret,
+                         user_agent=config.user_agent)
+
+    return reddit
 
 
 def get_psaw_api():
@@ -73,15 +85,8 @@ def get_post_data(post, folder, get_text=True):
     return title, title_keywords, link, score, date, image_path, meme_keywords
 
 
-def record_top_posts(start_date, end_date, amount):
-    base_post_folder = os.path.join(base_folder, 'top_posts')
-
-    if os.path.exists(base_post_folder):
-        num_existing_posts = len(os.listdir(base_post_folder))
-    else:
-        os.mkdir(base_post_folder)
-        num_existing_posts = 0
-
+def record_old_posts(start_date, end_date, amount):
+    num_existing_posts = len(os.listdir(base_post_folder))
     post_generator = psaw_api.search_submissions(after=start_date,
                                                  before=end_date,
                                                  subreddit='prequelmemes',
@@ -101,5 +106,21 @@ def record_top_posts(start_date, end_date, amount):
         print("{}% complete".format(int((i+1)/amount*100)))
 
 
+def record_new_posts(time_filter, amount):
+    num_existing_posts = len(os.listdir(base_post_folder))
+
+    for i, post in enumerate(subreddit.top(time_filter, limit=amount)):
+        post_folder = os.path.join(base_post_folder, str(i+num_existing_posts))
+        os.mkdir(post_folder)
+
+        data = get_post_data(post, post_folder)
+        store_post(data, post_folder)
+
+        print("{}% complete".format(int((i+1)/amount*100)))
+
+
 psaw_api = get_psaw_api()
+subreddit = get_praw_api().subreddit('prequelmemes')
+
 base_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)))
+base_post_folder = os.path.join(base_folder, 'top_posts')
