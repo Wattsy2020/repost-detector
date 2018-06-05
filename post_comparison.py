@@ -5,6 +5,8 @@ import post_recorder
 
 
 def compare_keywords(words1, words2):
+    if len(words1) == 0: return 0  # only happens if title_keywords is blank
+
     matches = 0
     for word in words1:
         if word in words2:
@@ -71,7 +73,6 @@ class NewPost:
 
             # stop comparing if section is not similar
             if similarity < .70:
-                # print(i, end=' ')
                 return similarity
             sum_similarities += similarity
 
