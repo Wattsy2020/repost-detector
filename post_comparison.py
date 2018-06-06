@@ -27,7 +27,6 @@ class Post:
             self.title = data[0]
             self.title_keywords = data[1][2:-3].split("', '")
             self.link = data[2]
-            self.score = int(data[3])
             self.date = int(data[4])
             self.image_path = data[5]
             self.meme_words = [''] if len(data[6]) == 4 else data[6][2:-3].split("', '")
