@@ -1,5 +1,8 @@
 from datetime import datetime
+import os
+
 import main
+import post_recorder
 
 
 def test_post_archive_coverage():
@@ -20,3 +23,10 @@ def test_post_archive_coverage():
         cutoff_date += 2592000
 
     print(posts_in_month)
+
+
+def check_folder_numbers():
+    for i in range(len(os.listdir(post_recorder.base_post_folder))):
+        if not os.path.exists(os.path.join(post_recorder.base_post_folder, str(i))):
+            print(i)
+    print('Done')
