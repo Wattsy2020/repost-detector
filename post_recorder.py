@@ -67,7 +67,6 @@ def get_post_data(post, folder, get_text=True):
     title = post.title
     title = re.sub('[^a-zA-Z0-9\s]+', '', title)  # subreddit.search(title) throws errors with weird characters
 
-    score = post.score
     date = int(post.created_utc)
     link = "reddit.com{}".format(post.permalink)
     image_path = download_image(post.url, folder)
@@ -82,7 +81,20 @@ def get_post_data(post, folder, get_text=True):
     else:
         meme_keywords = ['']
 
-    return title, title_keywords, link, score, date, image_path, meme_keywords
+    # 0 is there because system used to record upvotes
+    # if creating a new system remove this and modify the __init__ function of NewPost and Post in post_comparison
+    return title, title_keywords, link, 0, date, image_path, meme_keywords
+
+
+def record_posts_from_generator(generator, num_existing_posts):
+    for i, post in enumerate(generator):
+        if post.score < 500: return
+
+        post_folder = os.path.join(base_post_folder, str(i+num_existing_posts))
+        os.mkdir(post_folder)
+
+        data = get_post_data(post, post_folder)
+        store_post(data, post_folder)
 
 
 def record_old_posts(start_date, end_date, amount):
@@ -94,29 +106,14 @@ def record_old_posts(start_date, end_date, amount):
                                                  sort="desc",
                                                  limit=amount)
 
-    for i, post in enumerate(post_generator):
-        if post.score < 500: return
-
-        post_folder = os.path.join(base_post_folder, str(i+num_existing_posts))
-        os.mkdir(post_folder)
-
-        data = get_post_data(post, post_folder)
-        store_post(data, post_folder)
-
-        print("{}% complete".format(int((i+1)/amount*100)))
+    record_posts_from_generator(post_generator, num_existing_posts)
 
 
 def record_new_posts(time_filter, amount):
     num_existing_posts = len(os.listdir(base_post_folder))
+    post_generator = subreddit.top(time_filter, limit=amount)
 
-    for i, post in enumerate(subreddit.top(time_filter, limit=amount)):
-        post_folder = os.path.join(base_post_folder, str(i+num_existing_posts))
-        os.mkdir(post_folder)
-
-        data = get_post_data(post, post_folder)
-        store_post(data, post_folder)
-
-        print("{}% complete".format(int((i+1)/amount*100)))
+    record_posts_from_generator(post_generator, num_existing_posts)
 
 
 psaw_api = get_psaw_api()
