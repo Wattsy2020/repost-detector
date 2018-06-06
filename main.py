@@ -2,10 +2,10 @@ import os
 import shutil
 import time
 import prawcore
-from post_recorder import subreddit
 from datetime import datetime
 
 import post_recorder
+from post_recorder import subreddit
 from post_comparison import Post, NewPost, compare_keywords
 
 
@@ -47,13 +47,16 @@ def update_posts():
 
 
 def reply(repost: NewPost, original):
-    print('\n{} is a repost of {}'.format(repost.link, original.link))
+    message = '{} is a repost of {}'.format(repost.link, original.link)
+    print('\n'+message)
+    with open(output_storage_file, 'a+') as storage:
+        storage.write(message+'\n')
 
 
-def check_if_repost(new_post):
+def check_if_repost(new_post, text_similarity_limit):
     # print('\nChecking: {}       Meme text: {}'.format(new_post.title, new_post.meme_words))
+    meme_text_similarity_limit = text_similarity_limit
     title_similarity_limit = .7
-    meme_text_similarity_limit = .7
     image_similarity_limit = .9
 
     # compare posts with the same title
@@ -65,13 +68,8 @@ def check_if_repost(new_post):
 
         search_post = NewPost(submission, temp_folder, get_text=False)
 
-        # handle gifs
+        # ignore gifs
         if new_post.image_path == '' or search_post.image_path == '':
-            if new_post.image_path == search_post.image_path and new_post.title == search_post.title \
-                    and len(new_post.title) > 20:
-                reply(new_post, search_post)
-                shutil.rmtree(temp_folder)
-                return
             shutil.rmtree(temp_folder)
             continue
 
@@ -89,7 +87,7 @@ def check_if_repost(new_post):
             continue
 
         # compare blank images
-        elif not new_post.meme_words:
+        if not new_post.meme_words:
             if compare_keywords(new_post.title_keywords, post.title_keywords) >= title_similarity_limit:
                 if new_post.compare_image(post) >= image_similarity_limit:
                     reply(new_post, post)
@@ -103,36 +101,33 @@ def check_if_repost(new_post):
 
 
 def main():
-    new_folder = os.path.join(post_recorder.base_folder, 'new')
-    if not os.path.exists(new_folder):
-        os.mkdir(new_folder)
-
     while True:
         process_start_time = datetime.today()
 
-        for i, submission in enumerate(subreddit.top('hour')):
-            post_folder = os.path.join(new_folder, str(i))
-            post = NewPost(submission, post_folder)
+        for submission in subreddit.stream.submissions():
+            post = NewPost(submission, new_folder)
 
             # handle internet dropouts
             try:
-                check_if_repost(post)
+                check_if_repost(post, .2)
             except prawcore.exceptions.ServerError:
                 time.sleep(180)
 
-            if process_start_time.hour < datetime.today().hour:
-                break
+            shutil.rmtree(new_folder)
 
-        print('Refreshing posts at {0:02d}'.format(datetime.today().hour)+':{0:02d}'.format(datetime.today().minute))
+            # update in the middle of the day when there is low traffic
+            if process_start_time.day < datetime.today().day and datetime.today().hour == 12:
+                print('\n refreshing posts at {0:02d}'.format(datetime.today().hour)
+                      + ':{0:02d}'.format(datetime.today().minute))
 
-        # clear the new posts directory
-        shutil.rmtree(new_folder)
-        os.mkdir(new_folder)
-
-        if process_start_time.day < datetime.today().day:
-            posts = update_posts()
+                global posts
+                posts = update_posts()
+                process_start_time = datetime.today()
 
 
 posts = load_all_posts()
+new_folder = os.path.join(post_recorder.base_folder, 'new')
+output_storage_file = os.path.join(post_recorder.base_folder, 'reposts.txt')
+
 if __name__ == '__main__':
     main()
