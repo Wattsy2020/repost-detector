@@ -65,8 +65,8 @@ def get_image_text(image_path):
     try:
         text = pytesseract.image_to_string(modified_image).encode('utf-8')
     except pytesseract.pytesseract.TesseractError:
-        os.remove(filename)
-        return
+        print('Tesseract error occurred')
+        text = None
 
     # remove modified image to save space
     os.remove(filename)
