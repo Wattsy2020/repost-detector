@@ -20,7 +20,7 @@ def record_all_posts(posts_per_month):
 
         # this actually adds 30 days instead of 1 month but that doesn't matter much
         start_month = end_month
-        end_month = end_month + 2592000
+        end_month += 2592000
 
     # record the most recent posts using praw
     post_recorder.record_new_posts('month', posts_per_month)
@@ -28,17 +28,9 @@ def record_all_posts(posts_per_month):
 
 def load_all_posts():
     posts_folder = os.path.join(post_recorder.base_folder, 'top_posts')
-    posts = []
 
-    for folder in os.listdir(posts_folder):
-        post_path = os.path.join(posts_folder, '{}\\data.txt'.format(folder.title()))
-
-        if os.path.exists(post_path):  # if its a deleted post it will have a folder but no text file
-            posts.append(Post(post_path))
-
-    posts = sorted(posts, key=lambda item: -item.date)  # need negative sign to sort by most recent date
-
-    return posts
+    posts = [Post(os.path.join(posts_folder, i.title()+'\\data.txt')) for i in os.listdir(posts_folder)]
+    return sorted(posts, key=lambda item: -item.date)  # need negative sign to sort by most recent date
 
 
 def update_posts():
@@ -141,6 +133,7 @@ def main():
 
 
 posts = load_all_posts()
+print('done')
 new_folder = os.path.join(post_recorder.base_folder, 'new')
 output_storage_file = os.path.join(post_recorder.base_folder, 'reposts.txt')
 
