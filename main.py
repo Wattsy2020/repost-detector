@@ -105,7 +105,7 @@ def main():
         shutil.rmtree(new_folder)
 
         # update posts when there is low traffic (adjust hour depending on your timezone)
-        if process_start_time.day < datetime.today().day and datetime.today.hour == 12:
+        if process_start_time.day < datetime.today().day and datetime.today().hour == 12:
             print('\n refreshing posts at {0:02d}'.format(datetime.today().hour)
                   + ':{0:02d}'.format(datetime.today().minute))
 

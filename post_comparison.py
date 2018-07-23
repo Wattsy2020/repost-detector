@@ -1,14 +1,14 @@
 from skimage.measure import compare_ssim as ssim
 import cv2
 from os import mkdir
-import post_recorder
+from post_recorder import get_post_data
 
 
 # represents a post stored as a text file
 class Post:
     def __init__(self, text_file_path):
         with open(text_file_path, 'r', encoding='utf-8') as file:
-            data = [line.rstrip() for line in file.readlines()]
+            data = file.read().split('\n')
 
             self.title = data[0]
             self.link = data[1]
@@ -20,7 +20,7 @@ class Post:
 class NewPost:
     def __init__(self, submission, folder):
         mkdir(folder)
-        data = post_recorder.get_post_data(submission, folder)
+        data = get_post_data(submission, folder)
 
         self.title = data[0]
         self.link = data[1]
