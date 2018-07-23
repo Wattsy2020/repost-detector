@@ -1,8 +1,8 @@
 import re
-import psaw
 import os
-import urllib
 import cv2
+import urllib
+import psaw
 import praw
 
 import config
@@ -73,7 +73,8 @@ def get_post_data(post, folder):
     return title, link, date, image_path
 
 
-def record_posts_from_generator(generator, num_existing_posts):
+def record_posts_from_generator(generator):
+    num_existing_posts = len(os.listdir(base_post_folder))
     for i, post in enumerate(generator):
         if post.score < 500: return
 
@@ -85,22 +86,17 @@ def record_posts_from_generator(generator, num_existing_posts):
 
 
 def record_old_posts(start_date, end_date, amount):
-    num_existing_posts = len(os.listdir(base_post_folder))
     post_generator = psaw_api.search_submissions(after=start_date,
                                                  before=end_date,
                                                  subreddit='prequelmemes',
                                                  sort_type="score",
                                                  sort="desc",
                                                  limit=amount)
-
-    record_posts_from_generator(post_generator, num_existing_posts)
+    record_posts_from_generator(post_generator)
 
 
 def record_new_posts(time_filter, amount):
-    num_existing_posts = len(os.listdir(base_post_folder))
-    post_generator = subreddit.top(time_filter, limit=amount)
-
-    record_posts_from_generator(post_generator, num_existing_posts)
+    record_posts_from_generator(subreddit.top(time_filter, limit=amount))
 
 
 psaw_api = get_psaw_api()
