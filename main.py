@@ -1,14 +1,13 @@
 import os
 import shutil
 import time
-import praw
 import prawcore
 from datetime import datetime
 
 import post_recorder
 import message
 from post_recorder import subreddit
-from post_comparison import Post, NewPost, compare_keywords
+from post_comparison import Post, NewPost
 
 
 def record_all_posts(posts_per_month):
@@ -36,14 +35,11 @@ def load_all_posts():
 def update_posts():
     post_recorder.record_new_posts('day', 35)
 
-    # this is performed during a low traffic time so performance is not an issue
+    # this is performed during a low traffic time so performance is not an issue, can reuse load_all_posts
     return load_all_posts()
 
 
 def reply(repost: NewPost, original):
-    with open(output_storage_file, 'a+') as storage:
-        storage.write('{} is a repost of {}\n'.format(repost.link, original.link))
-
     '''
     reply_message = message.get_message(original.title, original.link)
 
@@ -53,13 +49,12 @@ def reply(repost: NewPost, original):
     except praw.exceptions.APIException:
         return
     '''
+    pass
 
 
-def check_if_repost(new_post, text_similarity_limit):
-    # print('\nChecking: {}       Meme text: {}'.format(new_post.title, new_post.meme_words))
-    meme_text_similarity_limit = text_similarity_limit
-    title_similarity_limit = .7
-    image_similarity_limit = .9
+def check_if_repost(new_post):
+    # print('\nChecking: {}       Meme text: {}'.format(new_post.title, new_post.meme_words)
+    image_similarity_limit = .85
 
     # compare posts with the same title
     temp_folder = os.path.join(post_recorder.base_folder, 'temp')
@@ -68,7 +63,7 @@ def check_if_repost(new_post, text_similarity_limit):
         if new_post.link == ('reddit.com'+submission.permalink): continue
         if submission.score <= 25: break
 
-        search_post = NewPost(submission, temp_folder, get_text=False)
+        search_post = NewPost(submission, temp_folder)
 
         # ignore gifs
         if new_post.image_path == '' or search_post.image_path == '':
@@ -88,18 +83,7 @@ def check_if_repost(new_post, text_similarity_limit):
         if new_post.image_path == '' or post.image_path == '':
             continue
 
-        # compare blank images
-        if not new_post.meme_words:
-            if compare_keywords(new_post.title_keywords, post.title_keywords) >= title_similarity_limit:
-                if new_post.compare_image(post) >= image_similarity_limit:
-                    reply(new_post, post)
-                    return
-
-        # compare normal image post
-        elif compare_keywords(new_post.meme_words, post.meme_words) >= meme_text_similarity_limit:
-            if new_post.compare_image(post) >= image_similarity_limit:
-                reply(new_post, post)
-                return
+        # to do: write reverse image search to find possible reposts and use compare_image to confirm
 
 
 def main():
@@ -111,19 +95,17 @@ def main():
         print(post_age)
 
         post = NewPost(submission, new_folder)
-        # can afford to spend more time analysing a post if we've analysed the rest of the submission stream
-        text_similarity_limit = .15 if post_age < 360 else .25
 
         # handle internet dropouts
         try:
-            check_if_repost(post, text_similarity_limit)
+            check_if_repost(post)
         except prawcore.exceptions.ServerError:
             time.sleep(180)
 
         shutil.rmtree(new_folder)
 
         # update posts when there is low traffic (adjust hour depending on your timezone)
-        if process_start_time.hour < datetime.today().hour == 12:
+        if process_start_time.day < datetime.today().day and datetime.today.hour == 12:
             print('\n refreshing posts at {0:02d}'.format(datetime.today().hour)
                   + ':{0:02d}'.format(datetime.today().minute))
 
@@ -132,10 +114,8 @@ def main():
             process_start_time = datetime.today()
 
 
-posts = load_all_posts()
-print('done')
 new_folder = os.path.join(post_recorder.base_folder, 'new')
-output_storage_file = os.path.join(post_recorder.base_folder, 'reposts.txt')
+posts = load_all_posts()
 
 if __name__ == '__main__':
     main()

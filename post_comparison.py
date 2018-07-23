@@ -4,45 +4,27 @@ from os import mkdir
 import post_recorder
 
 
-def compare_keywords(words1, words2):
-    if len(words1) == 0: return 0  # only happens if title_keywords is blank
-
-    matches = 0
-    for word in words1:
-        if word in words2:
-            matches += 1
-
-    return matches/len(words1)
-
-
-# represents a post stored in memory
+# represents a post stored as a text file
 class Post:
     def __init__(self, text_file_path):
         with open(text_file_path, 'r', encoding='utf-8') as file:
-            data = file.readlines()
-
-            for i in range(len(data)):
-                data[i] = data[i].rstrip()
+            data = [line.rstrip() for line in file.readlines()]
 
             self.title = data[0]
-            self.title_keywords = data[1][2:-3].split("', '")
-            self.link = data[2]
-            self.date = int(data[4])
-            self.image_path = data[5]
-            self.meme_words = [''] if len(data[6]) == 4 else data[6][2:-3].split("', '")
+            self.link = data[1]
+            self.date = int(data[2])
+            self.image_path = data[3]
 
 
 # represents a new post on the subreddit, contains methods for checking similarity of posts
 class NewPost:
-    def __init__(self, submission, folder, get_text=True):
+    def __init__(self, submission, folder):
         mkdir(folder)
-        data = post_recorder.get_post_data(submission, folder, get_text)
+        data = post_recorder.get_post_data(submission, folder)
 
         self.title = data[0]
-        self.title_keywords = data[1]
-        self.link = data[2]
-        self.image_path = data[5]
-        self.meme_words = data[6]
+        self.link = data[1]
+        self.image_path = data[3]
         self.submission = submission
 
     def compare_image(self, post):

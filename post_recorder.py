@@ -6,7 +6,6 @@ import cv2
 import praw
 
 import config
-import text_recognition
 
 
 def get_praw_api():
@@ -63,7 +62,7 @@ def download_image(url, folder):
     return file_name
 
 
-def get_post_data(post, folder, get_text=True):
+def get_post_data(post, folder):
     title = post.title
     title = re.sub('[^a-zA-Z0-9\s]+', '', title)  # subreddit.search(title) throws errors with weird characters
 
@@ -71,19 +70,7 @@ def get_post_data(post, folder, get_text=True):
     link = "reddit.com{}".format(post.permalink)
     image_path = download_image(post.url, folder)
 
-    title_words = text_recognition.get_words(title)
-    title_keywords = text_recognition.remove_common_words(title_words)
-
-    if get_text:
-        meme_text = text_recognition.get_image_text(image_path)
-        meme_words = text_recognition.get_words(meme_text)
-        meme_keywords = text_recognition.parse_ocr_text(meme_words)
-    else:
-        meme_keywords = ['']
-
-    # 0 is there because system used to record upvotes
-    # if creating a new system remove this and modify the __init__ function of NewPost and Post in post_comparison
-    return title, title_keywords, link, 0, date, image_path, meme_keywords
+    return title, link, date, image_path
 
 
 def record_posts_from_generator(generator, num_existing_posts):
