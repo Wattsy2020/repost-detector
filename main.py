@@ -7,7 +7,7 @@ from datetime import datetime
 import post_recorder
 import message
 from post_recorder import subreddit
-from post_comparison import Post, NewPost
+from post_comparison import Post, NewPost, ImageSearcher
 
 
 def record_all_posts(posts_per_month):
@@ -40,6 +40,7 @@ def update_posts():
 
 
 def reply(repost: NewPost, original):
+    print('{} is a repost of {}'.format(repost.link, original.link))
     '''
     reply_message = message.get_message(original.title, original.link)
 
@@ -49,7 +50,6 @@ def reply(repost: NewPost, original):
     except praw.exceptions.APIException:
         return
     '''
-    pass
 
 
 def check_if_repost(new_post):
@@ -77,10 +77,12 @@ def check_if_repost(new_post):
             reply(new_post, search_post)
             return
 
-    # search for posts with similar meme_words and use image comparison on the matches
-    for post in posts:
-        pass
-        # to do: write reverse image search to find possible reposts and use compare_image to confirm
+    # search through stored posts with similar colour histograms and confirm they are structurally similar
+    results = image_searcher.search(new_post.features)
+    for result in results:
+        similar_post = posts[result[0]]  # results is structured as a list of tuples: (post_number, similarity)
+        if new_post.compare_image(similar_post) >= image_similarity_limit:
+            reply(new_post, similar_post)
 
 
 def main():
@@ -113,6 +115,7 @@ def main():
 
 new_folder = os.path.join(post_recorder.base_folder, 'new')
 posts = load_all_posts()
+image_searcher = ImageSearcher()
 
 if __name__ == '__main__':
     main()

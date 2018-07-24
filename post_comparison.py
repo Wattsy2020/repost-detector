@@ -1,7 +1,9 @@
 from skimage.measure import compare_ssim as ssim
 import cv2
+import csv
+import numpy as np
 from os import mkdir
-from post_recorder import get_post_data
+from post_recorder import get_post_data, index_file
 
 
 # represents a post stored as a text file
@@ -62,3 +64,27 @@ class NewPost:
 
         # return average similarity of each section
         return sum_similarities/10
+
+
+# Searches for images with similar features to the stored posts
+class ImageSearcher:
+    def __init__(self):
+        # initialise image index from file
+        with open(index_file) as file:
+            reader = csv.reader(file)
+            self.index = [list(map(float, line)) for line in reader]
+        self.epsilon = 1e-10  # used to prevent division by 0 errors in the distance function
+
+    def search(self, query_features, limit=10):
+        results = {}
+
+        for i, features in enumerate(self.index):
+            distance = self.distance(features, query_features)
+            results[i] = distance  # update results with the post number and similarity between the features
+
+        results = sorted(results.items(), key=lambda kv: kv[1])
+        return results[:limit]
+
+    # compute the chi-squared distance between two histograms
+    def distance(self, histogram1, histogram2):
+        return 0.5 * np.sum([((a - b) ** 2) / (a + b + self.epsilon) for (a, b) in zip(histogram1, histogram2)])

@@ -90,7 +90,7 @@ def record_posts_from_generator(generator):
             data = get_post_data(post, post_folder)
             if data:
                 features = list(map(str, data[4]))
-                index.write('{} {}\n'.format(num_existing_posts, ','.join(features)))
+                index.write('{}\n'.format(','.join(features)))
 
                 store_post(data[:4], post_folder)
                 num_existing_posts += 1
