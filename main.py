@@ -66,6 +66,10 @@ def check_if_repost(new_post):
         if submission.score <= 25: break
 
         search_post = NewPost(submission, temp_folder)
+        if not search_post.image_path:
+            shutil.rmtree(temp_folder)
+            continue
+
         similarity = new_post.compare_image(search_post)
         shutil.rmtree(temp_folder)
 
