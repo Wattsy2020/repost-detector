@@ -6,6 +6,7 @@ import urllib
 import psaw
 import praw
 
+import image_description
 import config
 
 
@@ -71,25 +72,30 @@ def get_post_data(post, folder):
 
     image_path = download_image(post.url, folder)
     if image_path:  # only record image posts
-        return title, link, date, image_path
-
+        features = image_processor.describe(image_path)
+        return title, link, date, image_path, features
     return None
 
 
 def record_posts_from_generator(generator):
     num_existing_posts = len(os.listdir(base_post_folder))
-    for post in generator:
-        if post.score < 500: return
 
-        post_folder = os.path.join(base_post_folder, str(num_existing_posts))
-        os.mkdir(post_folder)
+    with open(index_file, 'a') as index:
+        for post in generator:
+            if post.score < 500: return
 
-        data = get_post_data(post, post_folder)
-        if data:
-            store_post(data, post_folder)
-            num_existing_posts += 1
-        else:
-            shutil.rmtree(post_folder)
+            post_folder = os.path.join(base_post_folder, str(num_existing_posts))
+            os.mkdir(post_folder)
+
+            data = get_post_data(post, post_folder)
+            if data:
+                features = list(map(str, data[4]))
+                index.write('{} {}\n'.format(num_existing_posts, ','.join(features)))
+
+                store_post(data[:4], post_folder)
+                num_existing_posts += 1
+            else:
+                shutil.rmtree(post_folder)
 
 
 def record_old_posts(start_date, end_date, amount):
@@ -108,6 +114,10 @@ def record_new_posts(time_filter, amount):
 
 psaw_api = get_psaw_api()
 subreddit = get_praw_api().subreddit('prequelmemes')
+image_processor = image_description.ColorDescriptor((8, 12, 3))
 
 base_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)))
+index_file = os.path.join(base_folder, 'index.csv')
 base_post_folder = os.path.join(base_folder, 'top_posts')
+if not os.path.exists(base_post_folder):
+    os.mkdir(base_post_folder)

@@ -22,11 +22,12 @@ class NewPost:
         mkdir(folder)
         data = get_post_data(submission, folder)
         if not data:  # if post isn't an image post data will be None
-            data = ['']*4
+            data = ['']*5
 
         self.title = data[0]
         self.link = data[1]
         self.image_path = data[3]
+        self.features = data[4]
         self.submission = submission
 
     def compare_image(self, post):
