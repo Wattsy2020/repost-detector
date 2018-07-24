@@ -53,6 +53,8 @@ def reply(repost: NewPost, original):
 
 
 def check_if_repost(new_post):
+    if not new_post.image_path: return  # ignore non image posts
+
     # print('\nChecking: {}       Meme text: {}'.format(new_post.title, new_post.meme_words)
     image_similarity_limit = .85
 
@@ -64,12 +66,6 @@ def check_if_repost(new_post):
         if submission.score <= 25: break
 
         search_post = NewPost(submission, temp_folder)
-
-        # ignore gifs
-        if new_post.image_path == '' or search_post.image_path == '':
-            shutil.rmtree(temp_folder)
-            continue
-
         similarity = new_post.compare_image(search_post)
         shutil.rmtree(temp_folder)
 
@@ -79,10 +75,7 @@ def check_if_repost(new_post):
 
     # search for posts with similar meme_words and use image comparison on the matches
     for post in posts:
-        # ignore gifs
-        if new_post.image_path == '' or post.image_path == '':
-            continue
-
+        pass
         # to do: write reverse image search to find possible reposts and use compare_image to confirm
 
 
