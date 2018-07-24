@@ -1,5 +1,6 @@
 import re
 import os
+import shutil
 import cv2
 import urllib
 import psaw
@@ -65,24 +66,30 @@ def download_image(url, folder):
 def get_post_data(post, folder):
     title = post.title
     title = re.sub('[^a-zA-Z0-9\s]+', '', title)  # subreddit.search(title) throws errors with weird characters
-
     date = int(post.created_utc)
     link = "reddit.com{}".format(post.permalink)
-    image_path = download_image(post.url, folder)
 
-    return title, link, date, image_path
+    image_path = download_image(post.url, folder)
+    if image_path:  # only record image posts
+        return title, link, date, image_path
+
+    return None
 
 
 def record_posts_from_generator(generator):
     num_existing_posts = len(os.listdir(base_post_folder))
-    for i, post in enumerate(generator):
+    for post in generator:
         if post.score < 500: return
 
-        post_folder = os.path.join(base_post_folder, str(i+num_existing_posts))
+        post_folder = os.path.join(base_post_folder, str(num_existing_posts))
         os.mkdir(post_folder)
 
         data = get_post_data(post, post_folder)
-        store_post(data, post_folder)
+        if data:
+            store_post(data, post_folder)
+            num_existing_posts += 1
+        else:
+            shutil.rmtree(post_folder)
 
 
 def record_old_posts(start_date, end_date, amount):
