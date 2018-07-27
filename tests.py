@@ -1,8 +1,12 @@
 from datetime import datetime
 import os
+import cv2
+import time
 
 import main
 import post_recorder
+import image_description
+import post_comparison
 
 
 def test_post_archive_coverage():
@@ -30,3 +34,44 @@ def check_folder_numbers():
         if not os.path.exists(os.path.join(post_recorder.base_post_folder, str(i))):
             print(i)
     print('Done')
+
+
+# used to test the effectiveness of different numbers of bins
+class ImageSearchTester:
+    def __init__(self, bins, indexed=False):
+        self.image_processor = image_description.ColorDescriptor(bins)
+        if not indexed:
+            self.re_index()
+        self.image_searcher = post_comparison.ImageSearcher()
+
+    def re_index(self):
+        with open(post_recorder.index_file, 'w') as index:
+            for post in main.posts:
+                features = self.image_processor.describe(post.image_path)
+                features = list(map(str, features))
+                index.write('{}, {}\n'.format(post.id, ','.join(features)))
+
+    def search_image(self, image_path):
+        query_features = self.image_processor.describe(image_path)
+        start = time.time()
+        results = self.image_searcher.search(query_features)
+        print('Search took {} seconds'.format(time.time() - start))
+
+        image_paths = [main.posts[result[0]].image_path for result in results]
+        for path in image_paths:
+            image = cv2.imread(path)
+            cv2.imshow('Result', image)
+            cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+    def test(self):
+        folder = input('Image Directory: ')
+        for image in os.listdir(folder):
+            image_path = os.path.join(folder, image)
+
+            image = cv2.imread(image_path)
+            cv2.imshow('Query', image)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+
+            self.search_image(image_path)
