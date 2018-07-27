@@ -24,10 +24,11 @@ def get_psaw_api():
     return psaw.PushshiftAPI()
 
 
-def store_post(data, folder):
+def store_post(data, folder, post_id):
     file_path = os.path.join(folder, "data.txt")
 
     with open(file_path, 'w', encoding="utf-8") as file:
+        file.write(str(post_id)+'\n')
         for field in data:
             file.write(str(field)+'\n')
 
@@ -90,9 +91,9 @@ def record_posts_from_generator(generator):
             data = get_post_data(post, post_folder)
             if data:
                 features = list(map(str, data[4]))
-                index.write('{}\n'.format(','.join(features)))
+                index.write('{}, {}\n'.format(num_existing_posts, ','.join(features)))
 
-                store_post(data[:4], post_folder)
+                store_post(data[:4], post_folder, num_existing_posts)
                 num_existing_posts += 1
             else:
                 shutil.rmtree(post_folder)

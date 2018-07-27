@@ -16,8 +16,9 @@ def record_all_posts(posts_per_month):
 
     while end_month < datetime.today().timestamp():
         post_recorder.record_old_posts(start_month, end_month, posts_per_month)
+        print('Downloaded all posts before {}'.format(datetime.fromtimestamp(end_month)))
 
-        # this actually adds 30 days instead of 1 month but that doesn't matter much
+        # adds 30 days instead of 1 month but we only need evenly spaced intervals anyway
         start_month = end_month
         end_month += 2592000
 
@@ -27,9 +28,10 @@ def record_all_posts(posts_per_month):
 
 def load_all_posts():
     posts_folder = os.path.join(post_recorder.base_folder, 'top_posts')
-
     posts = [Post(os.path.join(posts_folder, i.title()+'\\data.txt')) for i in os.listdir(posts_folder)]
-    return sorted(posts, key=lambda item: -item.date)  # need negative sign to sort by most recent date
+
+    # sort by id so that posts[post id] gives you the post with that id
+    return sorted(posts, key=lambda post: post.id)
 
 
 def update_posts():
@@ -40,7 +42,8 @@ def update_posts():
 
 
 def reply(repost: NewPost, original):
-    print('{} is a repost of {}'.format(repost.link, original.link))
+    with open('reposts.txt', 'a') as file:
+        file.write('{} is a repost of {}\n'.format(repost.link, original.link))
     '''
     reply_message = message.get_message(original.title, original.link)
 
@@ -54,8 +57,6 @@ def reply(repost: NewPost, original):
 
 def check_if_repost(new_post):
     if not new_post.image_path: return  # ignore non image posts
-
-    # print('\nChecking: {}       Meme text: {}'.format(new_post.title, new_post.meme_words)
     image_similarity_limit = .85
 
     # compare posts with the same title
@@ -80,12 +81,15 @@ def check_if_repost(new_post):
     # search through stored posts with similar colour histograms and confirm they are structurally similar
     results = image_searcher.search(new_post.features)
     for result in results:
-        similar_post = posts[result[0]]  # results is structured as a list of tuples: (post_number, similarity)
+        similar_post = posts[result[0]]
         if new_post.compare_image(similar_post) >= image_similarity_limit:
             reply(new_post, similar_post)
+            return
 
 
 def main():
+    if os.path.exists(new_folder):
+        shutil.rmtree(new_folder)
     process_start_time = datetime.today()
 
     for submission in subreddit.stream.submissions():
@@ -117,5 +121,5 @@ new_folder = os.path.join(post_recorder.base_folder, 'new')
 posts = load_all_posts()
 image_searcher = ImageSearcher()
 
-if __name__ == '__main__':
-    main()
+#if __name__ == '__main__':
+#    main()

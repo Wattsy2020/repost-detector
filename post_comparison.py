@@ -12,10 +12,11 @@ class Post:
         with open(text_file_path, 'r', encoding='utf-8') as file:
             data = file.read().split('\n')
 
-            self.title = data[0]
-            self.link = data[1]
-            self.date = int(data[2])
-            self.image_path = data[3]
+            self.id = int(data[0])
+            self.title = data[1]
+            self.link = data[2]
+            self.date = int(data[3])
+            self.image_path = data[4]
 
 
 # represents a new post on the subreddit, contains methods for checking similarity of posts
@@ -72,15 +73,16 @@ class ImageSearcher:
         # initialise image index from file
         with open(index_file) as file:
             reader = csv.reader(file)
-            self.index = [list(map(float, line)) for line in reader]
+            # form a list where each item is a tuple in the form (post_id, histogram of image)
+            self.index = [(int(line[0]), list(map(float, line[1:]))) for line in reader]
         self.epsilon = 1e-10  # used to prevent division by 0 errors in the distance function
 
     def search(self, query_features, limit=10):
         results = {}
 
-        for i, features in enumerate(self.index):
+        for post_id, features in self.index:
             distance = self.distance(features, query_features)
-            results[i] = distance  # update results with the post number and similarity between the features
+            results[post_id] = distance  # update results with the post number and similarity between the features
 
         results = sorted(results.items(), key=lambda kv: kv[1])
         return results[:limit]
