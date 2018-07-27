@@ -115,7 +115,7 @@ def record_new_posts(time_filter, amount):
 
 psaw_api = get_psaw_api()
 subreddit = get_praw_api().subreddit('prequelmemes')
-image_processor = image_description.ColorDescriptor((8, 12, 3))
+image_processor = image_description.ColorDescriptor((8, 12, 8))
 
 base_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)))
 index_file = os.path.join(base_folder, 'index.csv')
