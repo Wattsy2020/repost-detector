@@ -37,6 +37,10 @@ def load_all_posts():
 def update_posts():
     post_recorder.record_new_posts('day', 35)
 
+    # refresh image_searcher to load in the updated index.csv file
+    global image_searcher
+    image_searcher = ImageSearcher()
+
     # this is performed during a low traffic time so performance is not an issue, can reuse load_all_posts
     return load_all_posts()
 
@@ -121,5 +125,5 @@ new_folder = os.path.join(post_recorder.base_folder, 'new')
 posts = load_all_posts()
 image_searcher = ImageSearcher()
 
-#if __name__ == '__main__':
-#    main()
+if __name__ == '__main__':
+    main()
