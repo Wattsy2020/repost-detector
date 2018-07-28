@@ -48,4 +48,6 @@ class ColorDescriptor:
         hist = self.histogram(image, ellipse_mask)
         features.extend(hist)
 
-        return features
+        # convert features to form needed for cv2.compareHist()
+        features = np.array(features)
+        return features.ravel().astype('float32')

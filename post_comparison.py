@@ -70,23 +70,18 @@ class NewPost:
 # Searches for images with similar features to the stored posts
 class ImageSearcher:
     def __init__(self):
-        # initialise image index from file
         with open(index_file) as file:
             reader = csv.reader(file)
             # form a list where each item is a tuple in the form (post_id, histogram of image)
-            self.index = [(int(line[0]), list(map(float, line[1:]))) for line in reader]
-        self.epsilon = 1e-10  # used to prevent division by 0 errors in the distance function
+            self.index = [(int(line[0]), np.array(list(map(float, line[1:]))).ravel().astype('float32'))
+                          for line in reader]
 
     def search(self, query_features, limit=10):
         results = {}
 
         for post_id, features in self.index:
-            distance = self.distance(features, query_features)
+            distance = cv2.compareHist(features, query_features, cv2.HISTCMP_CORREL)
             results[post_id] = distance  # update results with the post number and similarity between the features
 
-        results = sorted(results.items(), key=lambda kv: kv[1])
+        results = sorted(results.items(), key=lambda kv: kv[1], reverse=True)
         return results[:limit]
-
-    # compute the chi-squared distance between two histograms
-    def distance(self, histogram1, histogram2):
-        return 0.5 * np.sum([((a - b) ** 2) / (a + b + self.epsilon) for (a, b) in zip(histogram1, histogram2)])
