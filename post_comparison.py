@@ -77,11 +77,11 @@ class ImageSearcher:
                           for line in reader]
 
     def search(self, query_features, limit=10):
-        results = {}
+        results = []
 
         for post_id, features in self.index:
             distance = cv2.compareHist(features, query_features, cv2.HISTCMP_CORREL)
-            results[post_id] = distance  # update results with the post number and similarity between the features
+            results.append([post_id, distance])
 
-        results = sorted(results.items(), key=lambda kv: kv[1], reverse=True)
+        results = sorted(results, key=lambda result: result[1], reverse=True)
         return results[:limit]
