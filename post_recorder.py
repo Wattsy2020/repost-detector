@@ -6,7 +6,7 @@ import urllib
 import psaw
 import praw
 
-import image_description
+import image_search
 import config
 
 
@@ -83,7 +83,7 @@ def record_posts_from_generator(generator):
 
     with open(index_file, 'a') as index:
         for post in generator:
-            if post.score < 500: return
+            if post.score < config.min_post_score: return
 
             post_folder = os.path.join(base_post_folder, str(num_existing_posts))
             os.mkdir(post_folder)
@@ -102,7 +102,7 @@ def record_posts_from_generator(generator):
 def record_old_posts(start_date, end_date, amount):
     post_generator = psaw_api.search_submissions(after=start_date,
                                                  before=end_date,
-                                                 subreddit='prequelmemes',
+                                                 subreddit=config.subreddit,
                                                  sort_type="score",
                                                  sort="desc",
                                                  limit=amount)
@@ -114,10 +114,10 @@ def record_new_posts(time_filter, amount):
 
 
 psaw_api = get_psaw_api()
-subreddit = get_praw_api().subreddit('prequelmemes')
-image_processor = image_description.ColorDescriptor((8, 12, 8))
+subreddit = get_praw_api().subreddit(config.subreddit)
+image_processor = image_search.ColorDescriptor(config.colour_bins)
 
-base_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)))
+base_folder = os.path.abspath(os.path.dirname(__file__))
 index_file = os.path.join(base_folder, 'index.csv')
 base_post_folder = os.path.join(base_folder, 'top_posts')
 if not os.path.exists(base_post_folder):

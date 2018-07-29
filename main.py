@@ -5,9 +5,10 @@ import prawcore
 from datetime import datetime
 
 import post_recorder
-import message
+import image_search
+import config
 from post_recorder import subreddit
-from post_comparison import Post, NewPost, ImageSearcher
+from post_comparison import Post, NewPost
 
 
 def record_all_posts(posts_per_month):
@@ -35,11 +36,12 @@ def load_all_posts():
 
 
 def update_posts():
-    post_recorder.record_new_posts('day', 35)
+    # this won't record 100 new posts per day, it will record all the posts that are above the minimum upvotes
+    post_recorder.record_new_posts('day', 100)
 
     # refresh image_searcher to load in the updated index.csv file
     global image_searcher
-    image_searcher = ImageSearcher()
+    image_searcher = image_search.ImageSearcher(post_recorder.index_file)
 
     # this is performed during a low traffic time so performance is not an issue, can reuse load_all_posts
     return load_all_posts()
@@ -48,20 +50,10 @@ def update_posts():
 def reply(repost: NewPost, original):
     with open('reposts.txt', 'a') as file:
         file.write('{} is a repost of {}\n'.format(repost.link, original.link))
-    '''
-    reply_message = message.get_message(original.title, original.link)
-
-    # handle deleted posts
-    try:
-        repost.submission.reply(reply_message)
-    except praw.exceptions.APIException:
-        return
-    '''
 
 
 def check_if_repost(new_post):
     if not new_post.image_path: return  # ignore non image posts
-    image_similarity_limit = .85
 
     # compare posts with the same title
     temp_folder = os.path.join(post_recorder.base_folder, 'temp')
@@ -78,7 +70,7 @@ def check_if_repost(new_post):
         similarity = new_post.compare_image(search_post)
         shutil.rmtree(temp_folder)
 
-        if similarity >= image_similarity_limit:
+        if similarity >= config.min_similarity:
             reply(new_post, search_post)
             return
 
@@ -86,7 +78,7 @@ def check_if_repost(new_post):
     results = image_searcher.search(new_post.features)
     for result in results:
         similar_post = posts[result[0]]
-        if new_post.compare_image(similar_post) >= image_similarity_limit:
+        if new_post.compare_image(similar_post) >= config.min_similarity:
             reply(new_post, similar_post)
             return
 
@@ -98,7 +90,7 @@ def main():
 
     for submission in subreddit.stream.submissions():
         post_age = datetime.today().timestamp() - submission.created_utc
-        if post_age > 3600: continue  # so the bot can be restarted without analysing a backlog of posts
+        if post_age > config.max_post_age: continue  # so the bot can be restarted without analysing a backlog of posts
         print(post_age)
 
         post = NewPost(submission, new_folder)
@@ -112,7 +104,7 @@ def main():
         shutil.rmtree(new_folder)
 
         # update posts when there is low traffic (adjust hour depending on your timezone)
-        if process_start_time.day < datetime.today().day and datetime.today().hour == 12:
+        if process_start_time.day < datetime.today().day and datetime.today().hour == config.update_hour:
             print('\n refreshing posts at {0:02d}'.format(datetime.today().hour)
                   + ':{0:02d}'.format(datetime.today().minute))
 
@@ -123,7 +115,7 @@ def main():
 
 new_folder = os.path.join(post_recorder.base_folder, 'new')
 posts = load_all_posts()
-image_searcher = ImageSearcher()
+image_searcher = image_search.ImageSearcher(post_recorder.index_file)
 
 if __name__ == '__main__':
     main()
