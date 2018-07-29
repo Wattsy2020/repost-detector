@@ -5,8 +5,7 @@ import time
 
 import main
 import post_recorder
-import image_description
-import post_comparison
+import image_search
 
 
 def test_post_archive_coverage():
@@ -39,10 +38,10 @@ def check_folder_numbers():
 # used to test the effectiveness of different numbers of bins
 class ImageSearchTester:
     def __init__(self, bins, indexed=False):
-        self.image_processor = image_description.ColorDescriptor(bins)
+        self.image_processor = image_search.ColorDescriptor(bins)
         if not indexed:
             self.re_index()
-        self.image_searcher = post_comparison.ImageSearcher()
+        self.image_searcher = image_search.ImageSearcher(post_recorder.index_file)
 
     def re_index(self):
         with open(post_recorder.index_file, 'w') as index:

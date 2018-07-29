@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import csv
 
 
 class ColorDescriptor:
@@ -51,3 +52,23 @@ class ColorDescriptor:
         # convert features to form needed for cv2.compareHist()
         features = np.array(features)
         return features.ravel().astype('float32')
+
+
+# Searches for images with similar features to the stored posts
+class ImageSearcher:
+    def __init__(self, index_file):
+        with open(index_file) as file:
+            reader = csv.reader(file)
+            # form a list where each item is a tuple in the form (post_id, histogram of image)
+            self.index = [(int(line[0]), np.array(list(map(float, line[1:]))).ravel().astype('float32'))
+                          for line in reader]
+
+    def search(self, query_features, limit=10):
+        results = []
+
+        for post_id, features in self.index:
+            distance = cv2.compareHist(features, query_features, cv2.HISTCMP_CORREL)
+            results.append([post_id, distance])
+
+        results = sorted(results, key=lambda result: result[1], reverse=True)
+        return results[:limit]
