@@ -25,17 +25,19 @@ class NewPost:
         mkdir(folder)
         data = get_post_data(submission, folder)
         if not data:  # if post isn't an image post data will be None
-            data = ['']*5
+            data = [None]*5
 
         self.title = data[0]
         self.link = data[1]
         self.image_path = data[3]
+        if self.image_path:
+            self.image = cv2.imread(self.image_path)
         self.features = data[4]
         self.submission = submission
 
     def compare_image(self, post):
         # create images from the path
-        image1 = cv2.imread(self.image_path)
+        image1 = self.image
         image2 = cv2.imread(post.image_path)
 
         # resize image2 to image1's dimensions
