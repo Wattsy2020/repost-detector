@@ -6,6 +6,8 @@ client_secret = ''
 user_agent = ''
 
 subreddit = ''  # the subreddit the bot searches through
+subreddit_creation_month = 1
+subreddit_creation_year = 2017
 update_hour = 12  # the hour of the day when the bot will add new posts to it's archive (24hr time)
 max_post_age = 3600  # the bot won't check new posts that are older than this (units are seconds)
 min_similarity = .85  # minimum similarity for the bot to recognise an image as a repost. Recommend not changing
