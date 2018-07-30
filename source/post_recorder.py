@@ -117,7 +117,7 @@ psaw_api = get_psaw_api()
 subreddit = get_praw_api().subreddit(config.subreddit)
 image_processor = image_search.ColorDescriptor(config.colour_bins)
 
-base_folder = os.path.abspath(os.path.dirname(__file__))
+base_folder = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 index_file = os.path.join(base_folder, 'index.csv')
 base_post_folder = os.path.join(base_folder, 'top_posts')
 if not os.path.exists(base_post_folder):

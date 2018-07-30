@@ -48,7 +48,7 @@ def update_posts():
 
 
 def reply(repost: NewPost, original):
-    with open('reposts.txt', 'a') as file:
+    with open(bot_activity, 'a') as file:
         file.write('{} is a repost of {}\n'.format(repost.link, original.link))
 
 
@@ -56,7 +56,6 @@ def check_if_repost(new_post):
     if not new_post.image_path: return  # ignore non image posts
 
     # compare posts with the same title
-    temp_folder = os.path.join(post_recorder.base_folder, 'temp')
     for submission in subreddit.search("title:{}".format(new_post.title), sort='top'):
         # ignore the exact same post
         if new_post.link == ('reddit.com'+submission.permalink): continue
@@ -103,7 +102,7 @@ def main():
 
         shutil.rmtree(new_folder)
 
-        # update posts when there is low traffic (adjust hour depending on your timezone)
+        # update posts when there is low traffic
         if process_start_time.day < datetime.today().day and datetime.today().hour == config.update_hour:
             print('\n refreshing posts at {0:02d}'.format(datetime.today().hour)
                   + ':{0:02d}'.format(datetime.today().minute))
@@ -114,6 +113,9 @@ def main():
 
 
 new_folder = os.path.join(post_recorder.base_folder, 'new')
+temp_folder = os.path.join(post_recorder.base_folder, 'temp')
+bot_activity = os.path.join(post_recorder.base_folder, 'reposts.txt')
+
 posts = load_all_posts()
 image_searcher = image_search.ImageSearcher(post_recorder.index_file)
 
