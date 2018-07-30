@@ -11,22 +11,6 @@ from post_recorder import subreddit
 from post_comparison import Post, NewPost
 
 
-def record_all_posts(posts_per_month):
-    start_month = int(datetime(2017, 1, 1).timestamp())
-    end_month = int(datetime(2017, 2, 1).timestamp())
-
-    while end_month < datetime.today().timestamp():
-        post_recorder.record_old_posts(start_month, end_month, posts_per_month)
-        print('Downloaded all posts before {}'.format(datetime.fromtimestamp(end_month)))
-
-        # adds 30 days instead of 1 month but we only need evenly spaced intervals anyway
-        start_month = end_month
-        end_month += 2592000
-
-    # record the most recent posts using praw
-    post_recorder.record_new_posts('month', posts_per_month)
-
-
 def load_all_posts():
     posts_folder = os.path.join(post_recorder.base_folder, 'top_posts')
     posts = [Post(os.path.join(posts_folder, i.title()+'\\data.txt')) for i in os.listdir(posts_folder)]
