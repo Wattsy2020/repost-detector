@@ -5,6 +5,7 @@ import cv2
 import urllib
 import psaw
 import praw
+import time
 
 import image_search
 import config
@@ -80,23 +81,38 @@ def get_post_data(post, folder):
 
 def record_posts_from_generator(generator):
     num_existing_posts = len(os.listdir(base_post_folder))
+    original_posts = num_existing_posts  # used to restart the download if an error occurs
 
     with open(index_file, 'a') as index:
-        for post in generator:
-            if post.score < config.min_post_score: return
+        while True:
+            try:
+                for post in generator:
+                    if post.score < config.min_post_score: return
 
-            post_folder = os.path.join(base_post_folder, str(num_existing_posts))
-            os.mkdir(post_folder)
+                    post_folder = os.path.join(base_post_folder, str(num_existing_posts))
+                    os.mkdir(post_folder)
 
-            data = get_post_data(post, post_folder)
-            if data:
-                features = list(map(str, data[4]))
-                index.write('{}, {}\n'.format(num_existing_posts, ','.join(features)))
+                    data = get_post_data(post, post_folder)
+                    if data:
+                        features = list(map(str, data[4]))
+                        index.write('{}, {}\n'.format(num_existing_posts, ','.join(features)))
 
-                store_post(data[:4], post_folder, num_existing_posts)
-                num_existing_posts += 1
-            else:
-                shutil.rmtree(post_folder)
+                        store_post(data[:4], post_folder, num_existing_posts)
+                        num_existing_posts += 1
+                    else:
+                        shutil.rmtree(post_folder)
+            except Exception as e:
+                print('Error occured while downloading posts: {}'.format(e))
+                print('Restarting download in 10 minutes, do not exit the program.')
+
+                # loop through and remove all posts just downloaded from generator
+                for folder in os.listdir(base_post_folder):
+                    if int(folder.title()) >= original_posts: shutil.rmtree(folder)
+                num_existing_posts = original_posts
+
+                # wait for 10 minutes then restart the download
+                time.sleep(600)
+                print('Download restarted')
 
 
 def record_old_posts(start_date, end_date, amount):
