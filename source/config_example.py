@@ -16,7 +16,7 @@ colour_bins = [8, 12, 8]  # used to setup the image search engine. Don't change 
 
 message = '''Accusation: General Reposti!
 
-Observation: This post appears to be similar to [post_title](post_link)
+Observation: This post appears to be similar to [{}]({})
 
 Query: May I eliminate the meatbag master?
 

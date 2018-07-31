@@ -34,6 +34,9 @@ def update_posts():
 def reply(repost: NewPost, original):
     with open(bot_activity, 'a') as file:
         file.write('{} is a repost of {}\n'.format(repost.link, original.link))
+    message = config.message.format(original.title, original.link)
+    print(message)
+    # repost.submission.reply(message)
 
 
 def check_if_repost(new_post):
