@@ -6,6 +6,7 @@ import time
 import main
 import post_recorder
 import image_search
+import config
 
 
 def test_post_archive_coverage():
@@ -74,3 +75,7 @@ class ImageSearchTester:
             cv2.destroyAllWindows()
 
             self.search_image(image_path)
+
+
+test = ImageSearchTester(config.colour_bins, True)
+test.test()

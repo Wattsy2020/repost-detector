@@ -35,8 +35,8 @@ def reply(repost: NewPost, original):
     with open(bot_activity, 'a') as file:
         file.write('{} is a repost of {}\n'.format(repost.link, original.link))
     message = config.message.format(original.title, original.link)
-    print(message)
-    # repost.submission.reply(message)
+    repost.submission.reply(message)
+    print("Replied to: {}".format(repost.link))
 
 
 def check_if_repost(new_post):
@@ -61,9 +61,8 @@ def check_if_repost(new_post):
             return
 
     # search through stored posts with similar colour histograms and confirm they are structurally similar
-    results = image_searcher.search(new_post.features)
-    for result in results:
-        similar_post = posts[result[0]]
+    results = [posts[result[0]] for result in image_searcher.search(new_post.features)]
+    for similar_post in results:
         if new_post.compare_image(similar_post) >= config.min_similarity:
             reply(new_post, similar_post)
             return

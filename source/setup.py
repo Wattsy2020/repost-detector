@@ -38,3 +38,5 @@ if confirm == 'y':
     print('-'*50)
     print('Recording posts...')
     record_all_posts(max_posts_per_month)
+
+    print("Successfully downloaded posts")
