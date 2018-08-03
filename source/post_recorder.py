@@ -101,6 +101,7 @@ def record_posts_from_generator(generator):
                         num_existing_posts += 1
                     else:
                         shutil.rmtree(post_folder)
+                return
             except Exception as e:
                 print('Error occured while downloading posts: {}'.format(e))
                 print('Restarting download in 10 minutes, do not exit the program.')
