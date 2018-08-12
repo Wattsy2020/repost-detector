@@ -21,6 +21,7 @@ A Reddit bot that uses a Content based image retrieval engine to detect when new
    Most of these are self explanatory but here are some pointers:
    
       * To fill out the reddit settings you'll need to make a bot account, then follow [these](http://pythonforengineers.com/build-a-reddit-bot-part-1/) instructions to fill out the client_id and client_secret variables, finally name the user_agent whatever you want.
+      * update_hour needs to be set to the lowest traffic time otherwise it'll miss some popular posts
       * The only change you could make to min_similarity is to increase it a bit, it definetely shouldn't go any lower
       * If you're setting this up for a really large subreddit (bigger then prequelmemes) change colour_bins to \[10, 12, 10\]
       * Leave the line at the bottom of the message in so I can get feedback on the bot
@@ -37,3 +38,4 @@ A Reddit bot that uses a Content based image retrieval engine to detect when new
 ## To do
 * Write a better reply message
 * Make it easier to install the bot
+* Have a better method for downloading new posts to its archive
