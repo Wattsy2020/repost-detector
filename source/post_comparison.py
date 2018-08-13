@@ -27,6 +27,7 @@ class NewPost:
 
         self.title = data[0]
         self.link = data[1]
+        self.date = data[2]
         self.image_path = data[3]
         if self.image_path:
             self.image = cv2.imread(self.image_path)
@@ -59,7 +60,7 @@ class NewPost:
                 return 0
 
             # stop comparing if section is not similar
-            if similarity < .70:
+            if similarity < .6:
                 return similarity
             sum_similarities += similarity
 
