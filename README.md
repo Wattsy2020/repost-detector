@@ -38,4 +38,3 @@ A Reddit bot that uses a Content based image retrieval engine to detect when new
 ## To do
 * Write a better reply message
 * Make it easier to install the bot
-* Have a better method for downloading new posts to its archive

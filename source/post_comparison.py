@@ -27,7 +27,6 @@ class NewPost:
 
         self.title = data[0]
         self.link = data[1]
-        self.date = data[2]
         self.image_path = data[3]
         if self.image_path:
             self.image = cv2.imread(self.image_path)

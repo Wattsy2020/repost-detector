@@ -20,18 +20,13 @@ def load_all_posts():
 
 
 def update_posts():
-    for post in new_posts:
-        if (datetime.today().timestamp() - post.date) > 86400:  # if post is older than a day
-            if post.submission.score > config.min_post_score:
-                # store data using post_recorder.store_post in post.folder
-                # copy post.folder into top_posts
-                pass
-            # remove post from new_posts array and storage folder
-        else: break
+    # add all posts that are older than a day and have enough upvotes to the archive
+    for _ in range(len(new_submissions)):
+        if (datetime.today().timestamp() - new_submissions[0].created_utc) < 86400: break
 
-    for i in range(len(new_posts)):
-        # rename folder of post and post.folder to i
-        pass
+        if new_submissions[0].score > config.min_post_score:
+            post_recorder.record_submission(new_submissions[0])
+        new_submissions.pop(0)
 
     # refresh image_searcher to load in the updated index.csv file
     global image_searcher
@@ -91,19 +86,13 @@ def main():
 
                 post = NewPost(submission, new_folder)
                 print("Checking: {}".format(post.link))
-
                 if post.image_path:
                     check_if_repost(post)
-
-                    # add post to temporary storage so that it may be added to top_posts later
-                    storage_folder = os.path.join(new_storage_folder, str(len(os.listdir(new_storage_folder))))
-                    post.folder = storage_folder
-                    new_posts.append(post)
-                    shutil.copy(new_folder, storage_folder)
+                    new_submissions.append(submission)
 
                 shutil.rmtree(new_folder)
-                last_post_timestamp = post.date
-                
+                last_post_timestamp = submission.created_utc
+
                 # update posts when there is low traffic
                 if process_start_time.day < datetime.today().day and datetime.today().hour == config.update_hour:
                     print('\n refreshing posts at {0:02d}'.format(datetime.today().hour)
@@ -132,12 +121,7 @@ temp_folder = os.path.join(post_recorder.base_folder, 'temp')
 clear_folders()
 
 # used to store new posts so that they can be added to top_posts later
-new_storage_folder = os.path.join(post_recorder.base_post_folder, 'new_storage')
-if os.path.exists(new_storage_folder):
-    shutil.rmtree(new_storage_folder)
-os.mkdir(new_storage_folder)
-
-new_posts = []
+new_submissions = []
 posts = load_all_posts()
 
 image_searcher = image_search.ImageSearcher(post_recorder.index_file)
