@@ -12,7 +12,7 @@ from post_comparison import Post, NewPost
 
 
 def load_all_posts():
-    posts_folder = os.path.join(post_recorder.base_folder, 'top_posts')
+    posts_folder = post_recorder.base_post_folder
     posts = [Post(os.path.join(posts_folder, i.title()+'\\data.txt')) for i in os.listdir(posts_folder)]
 
     # sort by id so that posts[post id] gives you the post with that id
@@ -20,8 +20,18 @@ def load_all_posts():
 
 
 def update_posts():
-    # this won't record 200 new posts per day, it will record all the posts that are above the minimum upvotes
-    post_recorder.record_new_posts('day', 200)
+    for post in new_posts:
+        if (datetime.today().timestamp() - post.date) > 86400:  # if post is older than a day
+            if post.submission.score > config.min_post_score:
+                # store data using post_recorder.store_post in post.folder
+                # copy post.folder into top_posts
+                pass
+            # remove post from new_posts array and storage folder
+        else: break
+
+    for i in range(len(new_posts)):
+        # rename folder of post and post.folder to i
+        pass
 
     # refresh image_searcher to load in the updated index.csv file
     global image_searcher
@@ -31,19 +41,17 @@ def update_posts():
     return load_all_posts()
 
 
-def reply(repost: NewPost, original):
-    if repost.link in replied: return
+def clear_folders():
+    if os.path.exists(new_folder): shutil.rmtree(new_folder)
+    if os.path.exists(temp_folder): shutil.rmtree(temp_folder)
 
-    with open(bot_activity, 'a') as file:
-        file.write('{} is a repost of {}\n'.format(repost.link, original.link))
+
+def reply(repost: NewPost, original):
     message = config.message.format(original.title, original.link)
     # repost.submission.reply(message)
-    replied.append(repost.link)
 
 
 def check_if_repost(new_post):
-    if not new_post.image_path: return  # ignore non image posts
-
     # compare posts with the same title
     for submission in subreddit.search("title:{}".format(new_post.title), sort='top'):
         # ignore the exact same post
@@ -72,19 +80,30 @@ def check_if_repost(new_post):
 
 def main():
     process_start_time = datetime.today()
+    last_post_timestamp = 0  # track when the last post analysed was created
 
     # this is wrapped in a try except to prevent internet dropouts crashing the bot
     while True:
         try:
             for submission in subreddit.stream.submissions():
-                post_age = datetime.today().timestamp() - submission.created_utc
-                if post_age > config.max_post_age: continue  # so the bot can be restarted without analysing old posts
-                print(post_age)
+                # so the bot won't analyse old posts if an exception occurs and the stream restarts
+                if submission.created_utc < last_post_timestamp: continue
 
                 post = NewPost(submission, new_folder)
-                check_if_repost(post)
-                shutil.rmtree(new_folder)
+                print("Checking: {}".format(post.link))
 
+                if post.image_path:
+                    check_if_repost(post)
+
+                    # add post to temporary storage so that it may be added to top_posts later
+                    storage_folder = os.path.join(new_storage_folder, str(len(os.listdir(new_storage_folder))))
+                    post.folder = storage_folder
+                    new_posts.append(post)
+                    shutil.copy(new_folder, storage_folder)
+
+                shutil.rmtree(new_folder)
+                last_post_timestamp = post.date
+                
                 # update posts when there is low traffic
                 if process_start_time.day < datetime.today().day and datetime.today().hour == config.update_hour:
                     print('\n refreshing posts at {0:02d}'.format(datetime.today().hour)
@@ -93,26 +112,34 @@ def main():
                     global posts
                     posts = update_posts()
                     process_start_time = datetime.today()
+
         except prawcore.exceptions.ServerError:
             print("Error occured while connecting to reddit, restarting stream")
             time.sleep(300)
+
         except Exception as e:
             print("\n\n\nError occured: {}".format(e))
             print("If this isn't an internet connection error please report it "
                   "at https://github.com/Wattsy2020/repost-detector/issues\n\n\n")
             time.sleep(300)
 
+        finally:
+            clear_folders()
+
 
 new_folder = os.path.join(post_recorder.base_folder, 'new')
 temp_folder = os.path.join(post_recorder.base_folder, 'temp')
+clear_folders()
 
-if os.path.exists(new_folder): shutil.rmtree(new_folder)
-if os.path.exists(temp_folder): shutil.rmtree(temp_folder)
+# used to store new posts so that they can be added to top_posts later
+new_storage_folder = os.path.join(post_recorder.base_post_folder, 'new_storage')
+if os.path.exists(new_storage_folder):
+    shutil.rmtree(new_storage_folder)
+os.mkdir(new_storage_folder)
 
-bot_activity = os.path.join(post_recorder.base_folder, 'reposts.txt')
-replied = []  # track replied too posts, if an error occurs and the bot has to restart it won't reply to a post twice
-
+new_posts = []
 posts = load_all_posts()
+
 image_searcher = image_search.ImageSearcher(post_recorder.index_file)
 
 if __name__ == '__main__':
