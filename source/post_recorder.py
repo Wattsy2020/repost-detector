@@ -109,9 +109,15 @@ def record_posts_from_generator(generator):
             print('Error occured while downloading posts: {}'.format(e))
             print('Restarting download in 10 minutes, do not exit the program.')
 
-            # loop through and remove all posts just downloaded from generator
+            # reset the posts archive to original state
             for folder in os.listdir(base_post_folder):
                 if int(folder.title()) >= num_original_posts: shutil.rmtree(folder)
+
+            # reset the index file to original state
+            with open(index_file, 'r') as file:
+                original_file = '\n'.join(file.read().split('\n')[:num_original_posts])
+            with open(index_file, 'w') as file:
+                file.write(original_file)
 
             # wait for 10 minutes then restart the download
             time.sleep(600)
