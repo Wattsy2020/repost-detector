@@ -59,7 +59,7 @@ class NewPost:
                 return 0
 
             # stop comparing if section is not similar
-            if similarity < .6:
+            if similarity < .7:
                 return similarity
             sum_similarities += similarity
 

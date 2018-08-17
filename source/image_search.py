@@ -63,7 +63,7 @@ class ImageSearcher:
             self.index = [(int(line[0]), np.array(list(map(float, line[1:]))).ravel().astype('float32'))
                           for line in reader]
 
-    def search(self, query_features, limit=20):
+    def search(self, query_features, limit=30):
         results = []
 
         for post_id, features in self.index:
