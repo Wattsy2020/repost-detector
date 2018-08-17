@@ -22,11 +22,11 @@ def load_all_posts():
 def update_posts():
     # add all posts that are older than a day and have enough upvotes to the archive
     for _ in range(len(new_submissions)):
-        if (datetime.today().timestamp() - new_submissions[0].created_utc) < 86400: break
-
         if new_submissions[0].score > config.min_post_score:
             post_recorder.record_submission(new_submissions[0])
-        new_submissions.pop(0)
+            new_submissions.pop(0)
+        elif (datetime.today().timestamp() - new_submissions[0].created_utc) > 86400:
+            new_submissions.pop(0)
 
     # refresh image_searcher to load in the updated index.csv file
     global image_searcher
@@ -43,7 +43,7 @@ def clear_folders():
 
 def reply(repost: NewPost, original):
     message = config.message.format(original.title, original.link)
-    # repost.submission.reply(message)
+    repost.submission.reply(message)
 
 
 def check_if_repost(new_post):
@@ -83,10 +83,11 @@ def main():
             for submission in subreddit.stream.submissions():
                 # so the bot won't analyse old posts if an exception occurs and the stream restarts
                 if submission.created_utc < last_post_timestamp: continue
+                if datetime.today().timestamp() - submission.created_utc > 1800: continue
 
                 post = NewPost(submission, new_folder)
-                print("Checking: {}".format(post.link))
                 if post.image_path:
+                    print("Checking: {}".format(post.link))
                     check_if_repost(post)
                     new_submissions.append(submission)
 
@@ -121,10 +122,12 @@ temp_folder = os.path.join(post_recorder.base_folder, 'temp')
 clear_folders()
 
 # used to store new posts so that they can be added to top_posts later
-new_submissions = []
-posts = load_all_posts()
+new_submissions = [post for post in subreddit.top('day', limit=1000)]
 
+posts = load_all_posts()
 image_searcher = image_search.ImageSearcher(post_recorder.index_file)
+# I ran into a bug with this so am just leaving this here in case
+assert len(image_searcher.index) == len(posts), "Index size not equal to number of posts"
 
 if __name__ == '__main__':
     main()
