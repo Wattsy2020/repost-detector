@@ -1,6 +1,7 @@
 from datetime import datetime
 import os
 import cv2
+import pickle
 import time
 
 import main
@@ -38,18 +39,17 @@ def check_folder_numbers():
 
 # used to test the effectiveness of different numbers of bins
 class ImageSearchTester:
-    def __init__(self, bins, indexed=False):
-        self.image_processor = image_search.ColorDescriptor(bins)
+    def __init__(self, indexed=False):
+        self.image_processor = image_search.ImageDescriptor()
+        print("Indexing")
         if not indexed:
             self.re_index()
         self.image_searcher = image_search.ImageSearcher(post_recorder.index_file)
 
     def re_index(self):
-        with open(post_recorder.index_file, 'w') as index:
-            for post in main.posts:
-                features = self.image_processor.describe(post.image_path)
-                features = list(map(str, features))
-                index.write('{}, {}\n'.format(post.id, ','.join(features)))
+        descriptors = [[post.id, self.image_processor.describe(post.image_path)] for post in main.posts]
+        with open(post_recorder.index_file, 'w') as file:
+            pickle.dump(descriptors, file)
 
     def search_image(self, image_path):
         query_features = self.image_processor.describe(image_path)
@@ -57,7 +57,7 @@ class ImageSearchTester:
         results = self.image_searcher.search(query_features)
         print('Search took {} seconds'.format(time.time() - start))
 
-        image_paths = [main.posts[result[0]].image_path for result in results]
+        image_paths = [main.posts[result].image_path for result in results]
         for path in image_paths:
             image = cv2.imread(path)
             cv2.imshow('Result', image)
@@ -77,5 +77,7 @@ class ImageSearchTester:
             self.search_image(image_path)
 
 
-test = ImageSearchTester(config.colour_bins, True)
+start = time.time()
+test = ImageSearchTester()
+print("Took {}seconds to index posts".format(time.time() - start))
 test.test()
