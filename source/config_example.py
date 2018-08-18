@@ -12,6 +12,7 @@ update_hour = 12  # the hour of the day when the bot will add the top posts of t
 min_similarity = .85  # minimum similarity for the bot to recognise an image as a repost. Recommend not changing
 min_post_score = 500  # the bot won't record posts with less upvotes than this
 colour_bins = [8, 12, 8]  # used to setup the image search engine. Don't change without reading the README
+max_image_size = [1500]*2  # resizes images with dimensions larger than this
 
 message = '''Accusation: General Reposti!
 
