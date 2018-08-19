@@ -17,6 +17,10 @@ def resize(image):
     return cv2.resize(image, (new_height, new_width), interpolation=cv2.INTER_AREA)
 
 
+def need_to_resize(image):
+    return image.shape[0] > config.max_image_size[0] or image.shape[1] > config.max_image_size[1]
+
+
 class ImageDescriptor:
     def __init__(self):
         self.extractor = cv2.KAZE_create()
@@ -24,7 +28,7 @@ class ImageDescriptor:
     def describe(self, image_path, vector_size=32):
         """extract features from an image using KAZE"""
         image = cv2.imread(image_path)
-        if image.shape[:2] > config.max_image_size:
+        if need_to_resize(image):
             image = resize(image)
 
         keypoints = self.extractor.detect(image)
@@ -68,6 +72,6 @@ class ImageSearcher:
 
 
 path1 = "C:\\Users\\liamw\\Desktop\\Memes\\Mathmeme.png"
-path2 = os.path.join(os.path.dirname(os.path.dirname(__file__)), "top_posts\\3052\\image.jpg")
+path2 = os.path.join(os.path.dirname(os.path.dirname(__file__)), "top_posts\\5053\\image.jpg")
 dsc = ImageDescriptor()
 dsc.describe(path2)

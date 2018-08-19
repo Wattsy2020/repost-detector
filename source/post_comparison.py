@@ -3,7 +3,7 @@ import cv2
 from os import mkdir
 
 from post_recorder import get_post_data
-from image_search import resize
+from image_search import resize, need_to_resize
 import config
 
 
@@ -30,11 +30,14 @@ class NewPost:
 
         self.title = data[0]
         self.link = data[1]
+        self.features = data[4]
+        self.submission = submission
+
         self.image_path = data[3]
         if self.image_path:
             self.image = cv2.imread(self.image_path)
-        self.features = data[4]
-        self.submission = submission
+            if need_to_resize(self.image):
+                self.image = resize(self.image)
 
     def compare_image(self, post):
         # create images from the path
@@ -42,8 +45,6 @@ class NewPost:
         image2 = cv2.imread(post.image_path)
 
         # resize image2 to image1's dimensions
-        if image1.shape[:2] > config.max_image_size:  # resize image if too large
-            image1 = resize(image1)
         width, height = image1.shape[:2]
         image2_resize = cv2.resize(image2, (height, width), interpolation=cv2.INTER_AREA)
 
@@ -61,7 +62,7 @@ class NewPost:
             similarity = ssim(im1_section, im2_section, multichannel=True)
 
             # stop comparing if section is not similar
-            if similarity < .7:
+            if similarity < (config.min_similarity - 0.5):
                 return similarity
             sum_similarities += similarity
 
