@@ -23,7 +23,6 @@ A Reddit bot that uses a Content based image retrieval engine to detect when new
       * To fill out the reddit settings you'll need to make a bot account, then follow [these](http://pythonforengineers.com/build-a-reddit-bot-part-1/) instructions to fill out the client_id and client_secret variables, finally name the user_agent whatever you want.
       * update_hour needs to be set to the lowest traffic time otherwise it'll miss some popular posts
       * The only change you could make to min_similarity is to increase it a bit, it definetely shouldn't go any lower
-      * If you're setting this up for a really large subreddit (bigger then prequelmemes) change colour_bins to \[10, 12, 10\]
       * Leave the line at the bottom of the message in so I can get feedback on the bot
 5. Download the posts from your subreddit by running setup.py (double click on it)
 6. Once setup.py says it is done you're ready to finally run the bot; Simply run main.py and the bot will start. The numbers it outputs are the age of posts it is analysing.
