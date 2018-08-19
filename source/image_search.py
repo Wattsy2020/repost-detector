@@ -46,7 +46,7 @@ class ImageDescriptor:
 
 class ImageSearcher:
     def __init__(self, index_file):
-        with open(index_file) as file:
+        with open(index_file, 'rb') as file:
             data = pickle.load(file)
 
         self.ids, self.matrix = zip(*data)

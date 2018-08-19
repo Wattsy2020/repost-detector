@@ -52,7 +52,7 @@ class ImageSearchTester:
             features = self.image_processor.describe(post.image_path)
             if features is not None:
                 descriptors.append([post.id, features])
-        with open(post_recorder.index_file, 'w') as file:
+        with open(post_recorder.index_file, 'wb') as file:
             pickle.dump(descriptors, file)
 
     def search_image(self, image_path):
