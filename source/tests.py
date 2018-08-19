@@ -47,7 +47,11 @@ class ImageSearchTester:
         self.image_searcher = image_search.ImageSearcher(post_recorder.index_file)
 
     def re_index(self):
-        descriptors = [[post.id, self.image_processor.describe(post.image_path)] for post in main.posts]
+        descriptors = []
+        for post in main.posts:
+            features = self.image_processor.describe(post.image_path)
+            if features is not None:
+                descriptors.append([post.id, features])
         with open(post_recorder.index_file, 'w') as file:
             pickle.dump(descriptors, file)
 
