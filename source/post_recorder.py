@@ -96,31 +96,22 @@ def record_submission(submission):
 
 
 def record_posts_from_generator(generator):
-    num_original_posts = len(os.listdir(base_post_folder))  # used to restart the download if an error occurs
+    recorded = []  # track recorded posts
 
     while True:
         try:
-            for submisison in generator:
-                if submisison.score < config.min_post_score: return
-                record_submission(submisison)
+            for submission in generator:
+                if submission.score < config.min_post_score: return
+                if submission.permalink in recorded: continue
+
+                record_submission(submission)
+                recorded.append(submission.permalink)
             return
 
         except Exception as e:
             print('Error occured while downloading posts: {}'.format(e))
-            print('Restarting download in 10 minutes, do not exit the program.')
-
-            # reset the posts archive to original state
-            for folder in os.listdir(base_post_folder):
-                if int(folder.title()) >= num_original_posts: shutil.rmtree(folder)
-
-            # reset the index file to original state
-            with open(index_file, 'r') as file:
-                original_file = '\n'.join(file.read().split('\n')[:num_original_posts])
-            with open(index_file, 'w') as file:
-                file.write(original_file)
-
-            # wait for 10 minutes then restart the download
-            time.sleep(600)
+            print('Restarting download in 5 minutes, do not exit the program.')
+            time.sleep(300)
             print('Download restarted')
 
 
