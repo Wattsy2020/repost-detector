@@ -70,9 +70,9 @@ class NewPost:
             # compare images using structural similarity index
             try:
                 similarity = ssim(im1_section, im2_section, multichannel=True)
-            except ValueError:  # image is completely white
-                print("Error using ssim on these posts: {} {}".format(self.link, post.link))
-                return 0
+            except ValueError as e:  # image is completely white
+                print("Error: {} while using ssim on these posts: {} {}".format(e, self.link, post.link))
+                similarity = config.min_similarity - 0.05
 
             # stop comparing if section is not similar
             if similarity < (config.min_similarity - 0.05):
