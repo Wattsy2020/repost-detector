@@ -1,7 +1,19 @@
 from skimage.measure import compare_ssim as ssim
 import cv2
+import math
 from os import mkdir
+
 from post_recorder import get_post_data
+import config
+
+
+def resize(image):
+    """Returns a resized version of image with dimensions < config.max_image_size"""
+    resize_ratio = config.max_image_size[0]/max(image.shape[:2])
+    new_width = math.floor(image.shape[0]*resize_ratio)
+    new_height = math.floor(image.shape[1]*resize_ratio)
+
+    return cv2.resize(image, (new_height, new_width), interpolation=cv2.INTER_AREA)
 
 
 # represents a post stored as a text file
@@ -27,11 +39,14 @@ class NewPost:
 
         self.title = data[0]
         self.link = data[1]
+        self.features = data[4]
+        self.submission = submission
+
         self.image_path = data[3]
         if self.image_path:
             self.image = cv2.imread(self.image_path)
-        self.features = data[4]
-        self.submission = submission
+            if self.image.shape[0] > config.max_image_size[0] or self.image.shape[1] > config.max_image_size[1]:
+                self.image = resize(self.image)
 
     def compare_image(self, post):
         # create images from the path
@@ -53,10 +68,7 @@ class NewPost:
             im2_section = image2_resize[start_section:end_section, 0:width]
 
             # compare images using structural similarity index
-            try:
-                similarity = ssim(im1_section, im2_section, multichannel=True)
-            except ValueError:  # image is too large (>2500*2500), not worth considering these outliers
-                return 0
+            similarity = ssim(im1_section, im2_section, multichannel=True)
 
             # stop comparing if section is not similar
             if similarity < .7:
