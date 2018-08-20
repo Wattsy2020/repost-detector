@@ -67,8 +67,8 @@ class ImageSearcher:
         image_distances = self.cos_cdist(query_features)
 
         # return the post_ids of the top results
-        nearest_images_indices = np.argsort(image_distances)[:limit].toList()
-        return self.ids[nearest_images_indices].toList()
+        nearest_images_indices = np.argsort(image_distances)[:limit].tolist()
+        return self.ids[nearest_images_indices].tolist()
 
 
 path1 = "C:\\Users\\liamw\\Desktop\\Memes\\Mathmeme.png"
