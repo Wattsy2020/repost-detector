@@ -71,7 +71,7 @@ class NewPost:
             similarity = ssim(im1_section, im2_section, multichannel=True)
 
             # stop comparing if section is not similar
-            if similarity < .7:
+            if similarity < (config.min_similarity - 0.05):
                 return similarity
             sum_similarities += similarity
 
