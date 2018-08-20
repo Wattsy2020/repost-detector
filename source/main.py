@@ -25,7 +25,7 @@ def update_posts():
         if new_submissions[0].score > config.min_post_score:
             post_recorder.record_submission(new_submissions[0])
             new_submissions.pop(0)
-        elif (datetime.today().timestamp() - new_submissions[0].created_utc) > 86400:
+        if (datetime.today().timestamp() - new_submissions[0].created_utc) > 86400:
             new_submissions.pop(0)
 
     # refresh image_searcher to load in the updated index.csv file
@@ -112,9 +112,7 @@ def main():
             print("If this isn't an internet connection error please report it "
                   "at https://github.com/Wattsy2020/repost-detector/issues\n\n\n")
             time.sleep(300)
-
-        finally:
-            clear_folders()
+        clear_folders()
 
 
 new_folder = os.path.join(post_recorder.base_folder, 'new')
