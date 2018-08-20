@@ -68,7 +68,11 @@ class NewPost:
             im2_section = image2_resize[start_section:end_section, 0:width]
 
             # compare images using structural similarity index
-            similarity = ssim(im1_section, im2_section, multichannel=True)
+            try:
+                similarity = ssim(im1_section, im2_section, multichannel=True)
+            except ValueError:  # image is completely white
+                print("Error using ssim on these posts: {} {}".format(self.link, post.link))
+                return 0
 
             # stop comparing if section is not similar
             if similarity < (config.min_similarity - 0.05):
