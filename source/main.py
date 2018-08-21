@@ -24,7 +24,6 @@ def update_posts():
     for _ in range(len(new_submissions)):
         if new_submissions[0].score > config.min_post_score:
             post_recorder.record_submission(new_submissions[0])
-            new_submissions.pop(0)
         if (datetime.today().timestamp() - new_submissions[0].created_utc) > 86400:
             new_submissions.pop(0)
 
@@ -105,13 +104,11 @@ def main():
 
         except prawcore.exceptions.ServerError:
             print("Error occured while connecting to reddit, restarting stream")
-            time.sleep(300)
-
         except Exception as e:
             print("\n\n\nError occured: {}".format(e))
             print("If this isn't an internet connection error please report it "
                   "at https://github.com/Wattsy2020/repost-detector/issues\n\n\n")
-            time.sleep(300)
+        time.sleep(300)
         clear_folders()
 
 
