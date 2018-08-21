@@ -54,8 +54,8 @@ class NewPost:
         image2 = cv2.imread(post.image_path)
 
         # resize image2 to image1's dimensions
-        width, height = image1.shape[:2]
-        image2_resize = cv2.resize(image2, (height, width), interpolation=cv2.INTER_AREA)
+        height, width = image1.shape[:2]
+        image2_resize = cv2.resize(image2, (width, height), interpolation=cv2.INTER_AREA)
 
         # split the image into 10ths and compare each section
         sum_similarities = 0
@@ -68,11 +68,7 @@ class NewPost:
             im2_section = image2_resize[start_section:end_section, 0:width]
 
             # compare images using structural similarity index
-            try:
-                similarity = ssim(im1_section, im2_section, multichannel=True)
-            except ValueError as e:  # image is completely white
-                print("Error: {} while using ssim on these posts: {} {}".format(e, self.link, post.link))
-                similarity = config.min_similarity - 0.05
+            similarity = ssim(im1_section, im2_section, multichannel=True)
 
             # stop comparing if section is not similar
             if similarity < (config.min_similarity - 0.05):
