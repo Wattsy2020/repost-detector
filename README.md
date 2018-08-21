@@ -35,6 +35,17 @@ A Reddit bot that uses a Content based image retrieval engine to detect when new
 * [OpenCV](https://opencv.org/) - The standard computer vision library. Used to build the image retrieval engine
 * [scikit-image](http://scikit-image.org/) - An image processing library. Used to compare the structural similarity of images.
 
+## What each module does
+* image_search - contains classes for classifying images and searching for images with similar classification
+* post_recorder - contains methods for downloading posts using both APIs
+* post_comparison - contains classes to represent reddit posts and a method to compare two images
+* main.py - uses all the modules to run the bot
+* tests.py - runs assorted tests
+* config.py - stores the settings the bot uses
+* setup.py - uses post_recorder to create the archive of reddit posts
+
 ## To do
+* Fix the bot recognising templates with unique titles as reposts
+* Write documentation, add docstrings to methods etc...
 * Write a better reply message
 * Make it easier to install the bot
