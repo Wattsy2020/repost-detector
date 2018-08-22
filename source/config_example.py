@@ -22,5 +22,10 @@ Query: May I eliminate the meatbag master?
 
 
 
-[Source code](https://github.com/Wattsy2020/repost-detector)'''
+I'm a bot [Source code](https://github.com/Wattsy2020/repost-detector)'''
 # please leave this ^ line in
+
+template_message = '''I found {} posts with the same image so either this has been reposted
+a lot or it's a template
+
+I'm a bot [Source code](https://github.com/Wattsy2020/repost-detector)'''

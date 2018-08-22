@@ -66,10 +66,14 @@ def check_if_repost(new_post):
 
     # search through stored posts with similar colour histograms and confirm they are structurally similar
     results = [posts[result[0]] for result in image_searcher.search(new_post.features)]
-    for similar_post in results:
-        if new_post.compare_image(similar_post) >= config.min_similarity:
-            reply(new_post, similar_post)
-            return
+    matches = [post for post in results if new_post.compare_image(post) >= config.min_similarity]
+
+    # if there are more than 5 matches it's probably a template
+    if len(matches) > 5:
+        message = config.template_message.format(len(matches))
+        new_post.submission.reply(message)
+    elif len(matches) >= 1:
+        reply(new_post, matches[0])
 
 
 def main():
