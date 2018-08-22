@@ -26,7 +26,7 @@ A Reddit bot that uses a Content based image retrieval engine to detect when new
       * If you're setting this up for a really large subreddit (bigger then prequelmemes) change colour_bins to \[10, 12, 10\]
       * Leave the line at the bottom of the message in so I can get feedback on the bot
 5. Download the posts from your subreddit by running setup.py (double click on it)
-6. Once setup.py says it is done you're ready to finally run the bot; Simply run main.py and the bot will start. The numbers it outputs are the age of posts it is analysing.
+6. Once setup.py says it is done you're ready to finally run the bot; Simply run main.py and the bot will start.
       
 
 ## Built with
@@ -45,7 +45,6 @@ A Reddit bot that uses a Content based image retrieval engine to detect when new
 * setup.py - uses post_recorder to create the archive of reddit posts
 
 ## To do
-* Fix the bot recognising templates with unique titles as reposts
 * Write documentation, add docstrings to methods etc...
 * Write a better reply message
 * Make it easier to install the bot
