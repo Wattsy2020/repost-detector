@@ -14,7 +14,7 @@ min_post_score = 500  # the bot won't record posts with less upvotes than this
 colour_bins = [8, 12, 8]  # used to setup the image search engine. Don't change without reading the README
 max_image_size = [900, 900]  # resizes images with dimensions larger than this
 
-message = '''This post may be a repost, it's image is {}% similar to [{}](http://{})
+message = '''This post may be a repost, it's image is {0:.2f}% similar to [{}](http://{})
 
 &nbsp;
 
