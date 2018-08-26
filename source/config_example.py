@@ -14,12 +14,11 @@ min_post_score = 500  # the bot won't record posts with less upvotes than this
 colour_bins = [8, 12, 8]  # used to setup the image search engine. Don't change without reading the README
 max_image_size = [900, 900]  # resizes images with dimensions larger than this
 
-message = '''Accusation: General Reposti!
-
-Observation: This post's image is {}% similar to [{}](http://{})
+message = '''This post may be a repost, it's image is {}% similar to [{}](http://{})
 
 &nbsp;
 
 I'm a bot [Source code](https://github.com/Wattsy2020/repost-detector)
+
 My post has a different title, why does it think it's a repost? Most reposts have irrelevant titles so I ignore titles'''
 # please leave this ^ line in
