@@ -16,16 +16,10 @@ max_image_size = [900, 900]  # resizes images with dimensions larger than this
 
 message = '''Accusation: General Reposti!
 
-Observation: This post appears to be similar to [{}](http://{})
+Observation: This post's image is {}% similar to [{}](http://{})
 
-Query: May I eliminate the meatbag master?
+&nbsp;
 
-
-
-I'm a bot [Source code](https://github.com/Wattsy2020/repost-detector)'''
+I'm a bot [Source code](https://github.com/Wattsy2020/repost-detector)
+My post has a different title, why does it think it's a repost? Most reposts have irrelevant titles so I ignore titles'''
 # please leave this ^ line in
-
-template_message = '''I found {} posts with the same image so either this has been reposted
-a lot or it's a template
-
-I'm a bot [Source code](https://github.com/Wattsy2020/repost-detector)'''
