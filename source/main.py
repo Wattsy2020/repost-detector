@@ -2,12 +2,13 @@ import os
 import shutil
 import time
 import prawcore
+from threading import Thread
 from datetime import datetime
 
 import post_recorder
 import image_search
 import config
-from post_recorder import subreddit
+from post_recorder import subreddit, reddit
 from post_comparison import Post, NewPost
 
 
@@ -113,6 +114,19 @@ def main():
         clear_folders()
 
 
+def remove_false_positives():
+    """Delete downvoted comments as they are false positives"""
+
+    bot_account = reddit.redditor(config.username)
+    while True:
+        try:
+            for comment in bot_account.comments.new(limit=20):
+                if comment.ups < -1: comment.delete()
+            time.sleep(900)
+        except prawcore.exceptions.ServerError:
+            time.sleep(300)
+
+
 new_folder = os.path.join(post_recorder.base_folder, 'new')
 temp_folder = os.path.join(post_recorder.base_folder, 'temp')
 clear_folders()
@@ -126,4 +140,5 @@ image_searcher = image_search.ImageSearcher(post_recorder.index_file)
 assert len(image_searcher.index) == len(posts), "Index size not equal to number of posts"
 
 if __name__ == '__main__':
-    main()
+    Thread(name="Remove False Positives", target=remove_false_positives).start()
+    Thread(name="Main", target=main).start()

@@ -130,7 +130,9 @@ def record_new_posts(time_filter, amount):
 
 
 psaw_api = get_psaw_api()
-subreddit = get_praw_api().subreddit(config.subreddit)
+reddit = get_praw_api()
+subreddit = reddit.subreddit(config.subreddit)
+
 image_processor = image_search.ColorDescriptor(config.colour_bins)
 
 base_folder = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
